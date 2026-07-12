@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>NOOMA Calendar</title>
+  <meta name="description" content="Calendário de postagens — Agência NOOMA"/>
+  <meta name="theme-color" content="#0d0d0d"/>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --accent:      #edf252;
+      --accent-low:  rgba(237,242,82,0.12);
+      --accent-mid:  rgba(237,242,82,0.22);
+      --accent-text: #0d0d0d;
+      --bg:          #0d0d0d;
+      --bg2:         #141414;
+      --bg3:         #1e1e1e;
+      --glass:       rgba(255,255,255,0.045);
+      --glass-h:     rgba(255,255,255,0.075);
+      --border:      rgba(255,255,255,0.09);
+      --border-h:    rgba(255,255,255,0.18);
+      --text:        #ffffff;
+      --muted:       rgba(255,255,255,0.5);
+      --dim:         rgba(255,255,255,0.22);
+      --danger:      #ff4d4d;
+      --r:           14px; --rs: 8px;
+      --shadow:      0 12px 48px rgba(0,0,0,0.7);
+      --trans:       all 0.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    body { min-height: 100dvh; overflow-x: hidden; }
+    button { font-family: inherit; cursor: pointer; border: none; outline: none; transition: var(--trans); }
+    input, textarea, select { font-family: inherit; outline: none; }
+    ::selection { background: var(--accent); color: var(--accent-text); }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+    /* SCREENS */
+    .screen { min-height: 100dvh; display: flex; flex-direction: column; }
+
+    /* LOADING */
+    #screenLoading { align-items: center; justify-content: center; background: var(--bg); }
+    .loading-wrap { text-align: center; }
+    .loading-n {
+      width: 72px; height: 72px; border-radius: 20px; background: var(--accent);
+      margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+      font-size: 36px; font-weight: 900; color: var(--accent-text);
+      box-shadow: 0 8px 32px rgba(237,242,82,0.3);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); box-shadow: 0 8px 32px rgba(237,242,82,0.3); }
+      50% { transform: scale(1.06); box-shadow: 0 12px 40px rgba(237,242,82,0.5); }
+    }
+    .loading-text { font-size: 13px; color: var(--muted); margin-top: 12px; letter-spacing: 0.5px; }
+    .loading-dots::after { content:''; animation: dots 1.5s steps(4,end) infinite; }
+    @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} 100%{content:''} }
+
+    /* SETUP */
+    #screenSetup { align-items: center; justify-content: center; background: var(--bg); padding: 24px; background-image: radial-gradient(ellipse 70% 50% at 50% -5%, rgba(237,242,82,0.07) 0%, transparent 60%); }
+    .setup-card { width: 100%; max-width: 460px; background: var(--bg2); border: 1px solid var(--border); border-radius: 24px; padding: 38px 34px; box-shadow: var(--shadow); }
+    .setup-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .logo-n-box { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 900; color: var(--accent-text); flex-shrink: 0; }
+    .logo-wordmark { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+    .logo-wordmark span { color: var(--accent); }
+    .setup-sub { font-size: 12px; color: var(--muted); margin-bottom: 26px; }
+    .setup-notice { padding: 12px 14px; border-radius: var(--rs); margin-bottom: 20px; background: var(--accent-low); border: 1px solid rgba(237,242,82,0.2); font-size: 12px; color: rgba(237,242,82,0.9); line-height: 1.65; }
+    .setup-notice strong { color: var(--accent); }
+    .prefilled { padding: 10px 14px; border-radius: var(--rs); margin-bottom: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-size: 11px; color: var(--muted); font-family: monospace; line-height: 1.9; }
+    .prefilled-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px; display: block; }
+    .field { margin-bottom: 14px; }
+    .flabel { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 5px; display: block; }
+    .finput { width: 100%; padding: 10px 13px; border-radius: var(--rs); background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-family: monospace; transition: var(--trans); }
+    .finput:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(237,242,82,0.1); }
+    .finput::placeholder { color: var(--dim); }
+    .btn-setup { width: 100%; padding: 13px; border-radius: 10px; background: var(--accent); color: var(--accent-text); font-size: 14px; font-weight: 800; margin-top: 6px; }
+    .btn-setup:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 24px rgba(237,242,82,0.25); }
+    .setup-err { font-size: 12px; color: var(--danger); text-align: center; margin-top: 8px; min-height: 18px; }
+
+    /* LOGIN */
+    #screenLogin { align-items: center; justify-content: center; background: var(--bg); padding: 24px; position: relative; overflow: hidden; }
+    #screenLogin::before { content:''; position:absolute; inset:0; pointer-events:none; background: radial-gradient(ellipse 80% 65% at 50% -15%, rgba(237,242,82,0.07) 0%, transparent 60%); }
+    .login-wrap { width: 100%; max-width: 360px; text-align: center; position: relative; z-index: 1; }
+    .login-icon-wrap { width: 88px; height: 88px; border-radius: 24px; background: var(--accent); margin: 0 auto 22px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(237,242,82,0.3); }
+    .login-icon-inner { font-size: 44px; font-weight: 900; color: var(--accent-text); line-height: 1; }
+    .login-brand { font-size: 44px; font-weight: 900; letter-spacing: -2.5px; color: var(--accent); line-height: 1; }
+    .login-tagline { font-size: 12px; color: var(--muted); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 6px; margin-bottom: 44px; }
+    .btn-google { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 14px 24px; border-radius: 14px; background: #ffffff; color: #1a1a1a; font-size: 15px; font-weight: 700; transition: var(--trans); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .btn-google:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .btn-google svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .login-note { font-size: 11px; color: var(--dim); margin-top: 16px; line-height: 1.5; }
+    .login-loading { font-size: 13px; color: var(--muted); margin-top: 14px; display: none; align-items: center; justify-content: center; gap: 8px; }
+    .login-err { font-size: 12px; color: var(--danger); margin-top: 12px; display: none; }
+
+    /* APP */
+    #screenApp { background: var(--bg); }
+
+    /* HEADER */
+    header { position: sticky; top: 0; z-index: 100; height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: rgba(13,13,13,0.92); backdrop-filter: blur(28px) saturate(1.5); border-bottom: 1px solid var(--border); gap: 10px; }
+    .h-logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .h-logo .logo-n-box { width: 28px; height: 28px; border-radius: 7px; font-size: 14px; }
+    .h-wordmark { font-size: 14px; font-weight: 900; letter-spacing: 0.5px; }
+    .h-wordmark span { color: var(--accent); }
+    .h-wordmark small { font-weight: 500; font-size: 12px; letter-spacing: 0px; color: var(--muted); }
+
+    /* WORKSPACE SWITCHER */
+    .ws-switcher { position: relative; flex-shrink: 0; }
+    .ws-btn { display: flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 8px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 12px; font-weight: 600; position: relative; }
+    .ws-btn:hover { background: var(--glass-h); border-color: rgba(237,242,82,0.3); }
+    .ws-btn-icon { font-size: 13px; }
+    .ws-btn-name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ws-btn-arrow { color: var(--muted); font-size: 10px; }
+    .ws-badge { position: absolute; top: -5px; right: -5px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--danger); font-size: 9px; font-weight: 800; color: #fff; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+    .ws-dropdown { position: absolute; top: calc(100% + 8px); left: 0; width: 260px; z-index: 300; background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; display: none; }
+    .ws-dropdown.open { display: block; }
+    .ws-dd-hdr { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--dim); padding: 12px 14px 6px; }
+    .ws-dd-item { display: flex; align-items: center; gap: 9px; padding: 10px 14px; cursor: pointer; transition: var(--trans); border-bottom: 1px solid transparent; }
+    .ws-dd-item:hover { background: var(--glass); }
+    .ws-dd-item.active { background: var(--accent-low); }
+    .ws-dd-item-icon { font-size: 15px; flex-shrink: 0; }
+    .ws-dd-item-info { flex: 1; min-width: 0; }
+    .ws-dd-item-name { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ws-dd-item-sub { font-size: 10px; color: var(--muted); }
+    .ws-dd-item-badge { font-size: 9px; font-weight: 800; background: var(--danger); color: #fff; border-radius: 99px; padding: 1px 6px; flex-shrink: 0; }
+    .ws-dd-sep { height: 1px; background: var(--border); margin: 4px 0; }
+    .ws-dd-create { display: flex; align-items: center; gap: 9px; padding: 10px 14px 12px; cursor: pointer; transition: var(--trans); color: var(--accent); font-size: 12px; font-weight: 700; }
+    .ws-dd-create:hover { background: var(--accent-low); }
+
+    /* HEADER RIGHT */
+    .h-center { flex: 1; display: flex; justify-content: center; }
+    .month-nav { display: flex; align-items: center; gap: 6px; }
+    .btn-nav { width: 30px; height: 30px; border-radius: 7px; background: var(--glass); border: 1px solid var(--border); color: var(--muted); font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .btn-nav:hover { background: var(--glass-h); border-color: var(--accent); color: var(--accent); }
+    .month-lbl { font-size: 13px; font-weight: 700; min-width: 136px; text-align: center; }
+    .month-lbl em { font-style: normal; color: var(--muted); font-weight: 400; margin-left: 3px; font-size: 12px; }
+    .h-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    .btn-hdr-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--glass); border: 1px solid var(--border); color: var(--muted); font-size: 14px; display: flex; align-items: center; justify-content: center; }
+    .btn-hdr-icon:hover { background: var(--glass-h); border-color: var(--border-h); color: var(--text); }
+    .btn-hdr-accent { background: var(--accent); border-color: var(--accent); color: var(--accent-text) !important; font-size: 11px; font-weight: 800; width: auto; padding: 0 12px; gap: 5px; }
+    .btn-hdr-accent:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(237,242,82,0.2); }
+    .user-chip { display: flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 99px; background: var(--glass); border: 1px solid var(--border); cursor: pointer; transition: var(--trans); }
+    .user-chip:hover { border-color: var(--border-h); background: var(--glass-h); }
+    .user-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--bg3); object-fit: cover; border: 2px solid var(--accent); }
+    .user-name { font-size: 11px; font-weight: 600; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .logout-btn { padding: 5px 10px; border-radius: 6px; background: rgba(255,77,77,0.1); border: 1px solid rgba(255,77,77,0.2); color: var(--danger); font-size: 11px; font-weight: 700; }
+    .logout-btn:hover { background: rgba(255,77,77,0.18); }
+
+    /* FILTER BAR */
+    .filter-bar { display: flex; align-items: center; gap: 8px; padding: 9px 20px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); background: rgba(13,13,13,0.6); }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-label { font-size: 10px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; flex-shrink: 0; }
+    .filter-chip { display: flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 99px; background: var(--glass); border: 1px solid var(--border); font-size: 11px; font-weight: 600; white-space: nowrap; flex-shrink: 0; cursor: pointer; transition: var(--trans); color: var(--muted); }
+    .filter-chip:hover { background: var(--glass-h); border-color: var(--border-h); color: var(--text); }
+    .filter-chip.active-all { background: var(--accent); border-color: var(--accent); color: var(--accent-text) !important; }
+    .filter-chip.active-client { background: var(--accent-low); border-color: var(--accent); color: var(--accent); }
+    .filter-sep { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+    .fc-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .fc-count { opacity: 0.65; }
+
+    /* MAIN */
+    main { flex: 1; display: flex; gap: 16px; padding: 14px 20px 22px; max-width: 1600px; margin: 0 auto; width: 100%; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+    .s-card { background: var(--glass); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; }
+    .s-title { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .s-client-list { display: flex; flex-direction: column; gap: 4px; }
+    .s-client-item { display: flex; align-items: center; gap: 7px; padding: 5px 7px; border-radius: var(--rs); background: rgba(255,255,255,0.025); border: 1px solid transparent; transition: var(--trans); }
+    .s-client-item:hover { background: var(--glass-h); border-color: var(--border); }
+    .s-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .s-name { font-size: 11px; font-weight: 600; flex: 1; }
+    .s-count { font-size: 9px; color: var(--muted); }
+    .s-empty { font-size: 12px; color: var(--dim); text-align: center; padding: 8px 0; }
+    .ct-list { display: flex; flex-direction: column; gap: 3px; }
+    .ct-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); padding: 2px 0; }
+    .ct-row .ico { font-size: 12px; width: 15px; text-align: center; }
+    .ct-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.3px; padding: 1px 5px; border-radius: 4px; margin-left: auto; }
+    .btn-manage-side { width: 100%; padding: 8px; border-radius: var(--rs); background: var(--accent); color: var(--accent-text); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 9px; }
+    .btn-manage-side:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 18px rgba(237,242,82,0.2); }
+
+    /* CALENDAR */
+    .cal-wrap { flex: 1; min-width: 0; }
+    .readonly-banner { display: none; padding: 8px 14px; border-radius: 8px; background: rgba(255,165,2,0.1); border: 1px solid rgba(255,165,2,0.25); color: #ffa502; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+    .readonly-banner.show { display: flex; align-items: center; gap: 7px; }
+    .day-names-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+    .day-name-cell { text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); padding: 5px 0; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .day-cell { min-height: 108px; border-radius: 9px; overflow: hidden; background: var(--glass); border: 1px solid var(--border); cursor: pointer; transition: var(--trans); display: flex; flex-direction: column; position: relative; }
+    .day-cell:hover:not(.outside) { background: var(--glass-h); border-color: rgba(237,242,82,0.3); transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0,0,0,0.35); }
+    .day-cell.outside { opacity: 0.3; pointer-events: none; }
+    .day-cell.today { border-color: var(--accent) !important; }
+    .day-cell.today .day-num { color: var(--accent); font-weight: 900; }
+    .day-cell.f-dim { opacity: 0.14 !important; transform: none !important; }
+    .day-cell.f-hi { border-color: rgba(237,242,82,0.18); }
+    .day-color-bar { height: 4px; width: 100%; flex-shrink: 0; }
+    .day-num { padding: 6px 8px 2px; font-size: 12px; font-weight: 700; }
+    .day-posts-wrap { padding: 0 6px 6px; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 3px; }
+    .cp-tag { border-radius: 4px; padding: 3px 5px; display: flex; flex-direction: column; gap: 1px; }
+    .cp-tag-line1 { display: flex; align-items: center; gap: 3px; font-size: 9.5px; font-weight: 800; color: #fff; line-height: 1.3; }
+    .cp-tag-type { display: inline-block; font-size: 7.5px; font-weight: 800; letter-spacing: 0.5px; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.25); border-radius: 3px; padding: 0 3px; }
+    .cp-tag-note { font-size: 8px; color: rgba(255,255,255,0.65); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cp-more { font-size: 9px; color: var(--muted); padding: 1px 0; }
+    .cp-empty { display: flex; align-items: center; justify-content: center; flex: 1; opacity: 0; transition: opacity 0.15s; font-size: 16px; color: var(--dim); }
+    .day-cell:hover .cp-empty { opacity: 1; }
+
+    /* MODALS */
+    .overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; padding: 18px; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; max-width: 520px; max-height: 92dvh; overflow-y: auto; transform: scale(0.92) translateY(14px); opacity: 0; transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s; box-shadow: var(--shadow); }
+    .overlay.open .modal { transform: scale(1) translateY(0); opacity: 1; }
+    .modal-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+    .modal-title { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; }
+    .modal-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .btn-close { width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0; background: var(--glass); color: var(--muted); font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .btn-close:hover { background: rgba(255,77,77,0.15); color: var(--danger); }
+
+    /* DAY MODAL */
+    .posts-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+    .post-item { display: flex; align-items: flex-start; gap: 9px; padding: 10px 11px; border-radius: 10px; background: var(--glass); border: 1px solid var(--border); }
+    .post-colordot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+    .post-info { flex: 1; min-width: 0; }
+    .post-cname { font-size: 12px; font-weight: 700; }
+    .post-badges { display: flex; align-items: center; gap: 5px; margin-top: 3px; flex-wrap: wrap; }
+    .post-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 5px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.4px; }
+    .post-note { font-size: 10.5px; color: var(--muted); font-style: italic; margin-top: 3px; line-height: 1.4; }
+    .post-creator { display: flex; align-items: center; gap: 5px; margin-top: 5px; font-size: 10px; color: var(--dim); }
+    .post-creator-avatar { width: 14px; height: 14px; border-radius: 50%; background: var(--bg3); object-fit: cover; }
+    .btn-del-post { width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; background: transparent; color: var(--muted); font-size: 13px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+    .btn-del-post:hover { background: rgba(255,77,77,0.15); color: var(--danger); }
+    .no-posts-msg { font-size: 12px; color: var(--dim); text-align: center; padding: 6px 0; }
+
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .sect-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+    .sect-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+    .client-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+    .copt { display: flex; align-items: center; gap: 6px; padding: 7px 9px; border-radius: 7px; background: var(--glass); border: 2px solid transparent; cursor: pointer; transition: var(--trans); font-size: 11px; font-weight: 700; color: var(--muted); }
+    .copt:hover { background: var(--glass-h); color: var(--text); border-color: var(--border); }
+    .copt.sel { border-color: currentColor !important; background: var(--glass-h); color: inherit; }
+    .copt .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .no-clients-hint { font-size: 11px; color: var(--dim); padding: 6px 0; grid-column: 1/-1; text-align: center; }
+
+    .btn-toggle-add { padding: 3px 8px; border-radius: 5px; background: var(--accent-low); border: 1px solid rgba(237,242,82,0.2); color: var(--accent); font-size: 10px; font-weight: 700; }
+    .btn-toggle-add:hover { background: var(--accent-mid); }
+    .inline-add-form { margin-top: 7px; padding: 11px; border-radius: 7px; background: rgba(237,242,82,0.04); border: 1px dashed rgba(237,242,82,0.22); display: none; }
+    .inline-add-form.open { display: block; }
+    .inline-add-label { font-size: 9px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; }
+    .inline-add-row { display: flex; align-items: center; gap: 5px; }
+    .sm-input { flex: 1; padding: 6px 9px; border-radius: 6px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 11px; transition: var(--trans); }
+    .sm-input:focus { border-color: var(--accent); }
+    .sm-input::placeholder { color: var(--dim); }
+    .color-thumb { width: 30px; height: 30px; border-radius: 6px; border: 2px solid var(--border); flex-shrink: 0; position: relative; overflow: hidden; cursor: pointer; transition: var(--trans); }
+    .color-thumb:hover { border-color: var(--accent); }
+    .color-thumb input[type="color"] { position: absolute; inset: -4px; width: 150%; height: 150%; opacity: 0; cursor: pointer; }
+    .hex-sm { width: 70px; padding: 6px 7px; border-radius: 6px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 10px; font-family: monospace; text-transform: uppercase; transition: var(--trans); }
+    .hex-sm:focus { border-color: var(--accent); }
+    .btn-add-inline { padding: 6px 10px; border-radius: 6px; background: var(--accent); color: var(--accent-text); font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .btn-add-inline:hover { opacity: 0.9; }
+
+    .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+    .topt { display: flex; align-items: center; gap: 7px; padding: 8px 9px; border-radius: 7px; background: var(--glass); border: 2px solid transparent; cursor: pointer; transition: var(--trans); font-size: 11px; font-weight: 700; color: var(--muted); }
+    .topt:hover { background: var(--glass-h); color: var(--text); border-color: var(--border); }
+    .topt.sel { border-color: var(--accent); color: var(--text); background: var(--accent-low); }
+    .topt .ico { font-size: 13px; }
+    .topt .lbl { flex: 1; }
+    .topt .badge { font-size: 8px; font-weight: 800; letter-spacing: 0.5px; padding: 1px 5px; border-radius: 3px; background: rgba(237,242,82,0.15); color: var(--accent); }
+    .topt.sel .badge { background: var(--accent); color: var(--accent-text); }
+    .note-ta { width: 100%; padding: 9px 11px; border-radius: 7px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 12px; resize: vertical; min-height: 54px; transition: var(--trans); }
+    .note-ta:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(237,242,82,0.08); }
+    .note-ta::placeholder { color: var(--dim); }
+    .btn-add-post { width: 100%; padding: 11px; border-radius: 9px; background: var(--accent); color: var(--accent-text); font-size: 12px; font-weight: 800; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .btn-add-post:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 22px rgba(237,242,82,0.22); }
+    .btn-add-post:disabled { opacity: 0.32; transform: none; cursor: not-allowed; box-shadow: none; }
+
+    /* CLIENTS MODAL */
+    .cm-list { display: flex; flex-direction: column; gap: 7px; }
+    .cm-item { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 9px; background: var(--glass); border: 1px solid var(--border); }
+    .cm-swatch { width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.12); cursor: pointer; position: relative; overflow: hidden; transition: var(--trans); }
+    .cm-swatch:hover { transform: scale(1.08); border-color: var(--accent); }
+    .cm-swatch input[type="color"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .cm-name { flex: 1; background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text); font-size: 12px; font-weight: 600; padding: 2px 3px; transition: var(--trans); }
+    .cm-name:focus { border-bottom-color: var(--accent); outline: none; }
+    .cm-hex { width: 72px; padding: 4px 6px; border-radius: 5px; background: var(--glass); border: 1px solid var(--border); color: var(--muted); font-size: 9.5px; font-family: monospace; text-transform: uppercase; transition: var(--trans); }
+    .cm-hex:focus { border-color: var(--accent); color: var(--text); }
+    .btn-cm-save { padding: 5px 10px; border-radius: 6px; background: var(--accent); color: var(--accent-text); font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .btn-cm-save:hover { opacity: 0.9; }
+    .btn-cm-del { width: 26px; height: 26px; border-radius: 5px; flex-shrink: 0; background: transparent; color: var(--muted); font-size: 12px; display: flex; align-items: center; justify-content: center; }
+    .btn-cm-del:hover { background: rgba(255,77,77,0.15); color: var(--danger); }
+    .add-cm-card { margin-top: 6px; padding: 13px; border-radius: 9px; background: rgba(237,242,82,0.04); border: 1px dashed rgba(237,242,82,0.22); }
+    .add-cm-title { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 9px; }
+    .add-cm-row { display: flex; align-items: center; gap: 6px; }
+    .cm-text-input { flex: 1; padding: 7px 10px; border-radius: var(--rs); background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 12px; transition: var(--trans); }
+    .cm-text-input:focus { border-color: var(--accent); }
+    .cm-text-input::placeholder { color: var(--dim); }
+    .color-swatch-lg { width: 36px; height: 36px; border-radius: 8px; border: 2px solid var(--border); flex-shrink: 0; position: relative; overflow: hidden; cursor: pointer; transition: var(--trans); }
+    .color-swatch-lg:hover { border-color: var(--accent); transform: scale(1.05); }
+    .color-swatch-lg input[type="color"] { position: absolute; inset: -4px; width: 150%; height: 150%; opacity: 0; cursor: pointer; }
+    .hex-input { width: 76px; padding: 7px 8px; border-radius: var(--rs); background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 10px; font-family: monospace; text-transform: uppercase; transition: var(--trans); }
+    .hex-input:focus { border-color: var(--accent); }
+    .btn-create { padding: 7px 14px; border-radius: var(--rs); background: var(--accent); color: var(--accent-text); font-size: 11px; font-weight: 800; white-space: nowrap; }
+    .btn-create:hover { opacity: 0.9; box-shadow: 0 4px 16px rgba(237,242,82,0.2); }
+
+    /* WORKSPACE SETTINGS MODAL */
+    .ws-member-item { display: flex; align-items: center; gap: 9px; padding: 10px 11px; border-radius: 9px; background: var(--glass); border: 1px solid var(--border); }
+    .ws-member-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: var(--bg3); border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+    .ws-member-info { flex: 1; min-width: 0; }
+    .ws-member-name { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ws-member-email { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ws-role-badge { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+    .role-owner { background: rgba(237,242,82,0.15); color: var(--accent); }
+    .role-editor { background: rgba(46,213,115,0.15); color: #2ed573; }
+    .role-viewer { background: rgba(255,255,255,0.08); color: var(--muted); }
+    .ws-role-select { padding: 4px 8px; border-radius: 6px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 11px; font-weight: 600; }
+    .ws-role-select:focus { border-color: var(--accent); }
+    .btn-ws-icon { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; background: transparent; color: var(--muted); font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .btn-ws-icon:hover { background: rgba(255,77,77,0.15); color: var(--danger); }
+
+    .pending-item { display: flex; align-items: center; gap: 9px; padding: 10px 11px; border-radius: 9px; background: rgba(255,165,2,0.06); border: 1px solid rgba(255,165,2,0.18); }
+    .pending-select { padding: 4px 8px; border-radius: 6px; background: var(--glass); border: 1px solid var(--border); color: var(--text); font-size: 11px; font-weight: 600; }
+    .pending-select:focus { border-color: var(--accent); }
+    .btn-approve { padding: 5px 10px; border-radius: 6px; background: rgba(46,213,115,0.15); border: 1px solid rgba(46,213,115,0.3); color: #2ed573; font-size: 10px; font-weight: 800; }
+    .btn-approve:hover { background: rgba(46,213,115,0.25); }
+    .btn-reject { padding: 5px 10px; border-radius: 6px; background: rgba(255,77,77,0.1); border: 1px solid rgba(255,77,77,0.2); color: var(--danger); font-size: 10px; font-weight: 800; }
+    .btn-reject:hover { background: rgba(255,77,77,0.18); }
+
+    .invite-box { padding: 11px 13px; border-radius: 8px; background: var(--bg3); border: 1px solid var(--border); font-size: 10px; font-family: monospace; color: var(--muted); word-break: break-all; margin-bottom: 8px; }
+    .invite-btns { display: flex; gap: 7px; }
+    .btn-copy { padding: 7px 14px; border-radius: 7px; background: var(--accent); color: var(--accent-text); font-size: 11px; font-weight: 800; }
+    .btn-copy:hover { opacity: 0.9; }
+    .btn-regen { padding: 7px 14px; border-radius: 7px; background: var(--glass); border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; }
+    .btn-regen:hover { background: var(--glass-h); color: var(--text); }
+
+    .danger-zone { margin-top: 4px; padding: 12px; border-radius: 8px; background: rgba(255,77,77,0.05); border: 1px solid rgba(255,77,77,0.15); }
+    .danger-title { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--danger); margin-bottom: 9px; }
+    .btn-danger { padding: 7px 14px; border-radius: 7px; background: rgba(255,77,77,0.1); border: 1px solid rgba(255,77,77,0.25); color: var(--danger); font-size: 11px; font-weight: 800; margin-right: 7px; }
+    .btn-danger:hover { background: rgba(255,77,77,0.2); }
+
+    /* ANALYTICS MODAL */
+    .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+    .stat-card { padding: 14px; border-radius: 10px; background: var(--glass); border: 1px solid var(--border); text-align: center; }
+    .stat-card.main { background: var(--accent-low); border-color: rgba(237,242,82,0.2); grid-column: 1/-1; }
+    .stat-num { font-size: 32px; font-weight: 900; letter-spacing: -2px; color: var(--accent); line-height: 1; }
+    .stat-card.main .stat-num { font-size: 40px; }
+    .stat-label { font-size: 10px; color: var(--muted); margin-top: 5px; font-weight: 600; letter-spacing: 0.3px; }
+    .analytics-users-list { display: flex; flex-direction: column; gap: 5px; }
+    .au-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; background: var(--glass); border: 1px solid var(--border); }
+    .au-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--bg3); object-fit: cover; flex-shrink: 0; }
+    .au-info { flex: 1; min-width: 0; }
+    .au-name { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .au-email { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .au-last { font-size: 10px; color: var(--dim); white-space: nowrap; flex-shrink: 0; }
+
+    /* TOAST */
+    #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(16px); background: rgba(28,28,28,0.96); backdrop-filter: blur(24px); border: 1px solid var(--border-h); border-radius: 99px; padding: 9px 20px; font-size: 12px; font-weight: 600; z-index: 9999; opacity: 0; transition: all 0.3s ease; white-space: nowrap; pointer-events: none; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* LOADER SPINNER */
+    .ld { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); border-top-color: var(--accent); animation: spin 0.6s linear infinite; display: inline-block; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* BADGE COLORS */
+    .badge-reels    { background: rgba(255,65,65,0.25);  color: #ff8080; }
+    .badge-feed     { background: rgba(46,213,115,0.2);  color: #2ed573; }
+    .badge-carrossel { background: rgba(30,144,255,0.2); color: #74b9ff; }
+    .badge-foto     { background: rgba(255,165,2,0.2);   color: #ffa502; }
+
+    /* MOBILE FAB */
+    .fab-group { display: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 860px) {
+      header { padding: 0 12px; height: 56px; gap: 7px; }
+      .h-wordmark small, .h-wordmark { display: none; }
+      main { padding: 8px 8px 78px; flex-direction: column; gap: 8px; }
+      .sidebar { display: none; }
+      .day-cell { min-height: 58px; border-radius: 7px; }
+      .day-num { font-size: 10px; padding: 4px 6px 1px; }
+      .day-posts-wrap { padding: 0 4px 4px; gap: 2px; }
+      .cp-tag { padding: 2px 3px; }
+      .cp-tag-line1 { font-size: 8px; }
+      .cp-tag-note { display: none; }
+      .month-lbl { font-size: 12px; min-width: 104px; }
+      .filter-bar { padding: 7px 10px; }
+      .user-name, .logout-btn { display: none; }
+      .fab-group { display: flex; position: fixed; bottom: 14px; right: 12px; flex-direction: column; align-items: flex-end; gap: 7px; z-index: 150; }
+      .fab { width: 48px; height: 48px; border-radius: 13px; background: var(--accent); color: var(--accent-text); font-size: 19px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 24px rgba(237,242,82,0.35); }
+      .fab:hover { transform: scale(1.06); }
+      .fab.sec { width: 42px; height: 42px; font-size: 15px; border-radius: 11px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="screenLoading" class="screen">
+  <div class="loading-wrap">
+    <div class="loading-n">N</div>
+    <div class="loading-text" style="font-weight:800;font-size:15px;letter-spacing:1px">NOOMA Calendar</div>
+    <div class="loading-text loading-dots" style="margin-top:6px;font-size:11px;color:var(--dim)">Carregando</div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="screenSetup" class="screen" style="display:none">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="logo-n-box">N</div>
+      <div class="logo-wordmark"><span>NOOMA</span> Calendar</div>
+    </div>
+    <div class="setup-sub">Configuração inicial — apenas uma vez</div>
+    <div class="setup-notice">
+      ⚡ <strong>Quase pronto!</strong> Cole os campos do SDK do Firebase abaixo.<br>
+      <strong>Console Firebase → Configurações do Projeto → Seus Aplicativos → SDK</strong>
+    </div>
+    <div class="prefilled">
+      <span class="prefilled-title">✅ Já configurado</span>
+      authDomain: <strong>calendario-agencia.firebaseapp.com</strong><br>
+      projectId: <strong>calendario-agencia</strong><br>
+      storageBucket: <strong>calendario-agencia.firebasestorage.app</strong><br>
+      messagingSenderId: <strong>449749401473</strong>
+    </div>
+    <div class="field"><label class="flabel" for="inp_apiKey">API Key *</label><input class="finput" type="text" id="inp_apiKey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false"/></div>
+    <div class="field"><label class="flabel" for="inp_appId">App ID *</label><input class="finput" type="text" id="inp_appId" placeholder="1:449749401473:web:..." autocomplete="off" spellcheck="false"/></div>
+    <button class="btn-setup" id="btnSetupSave">Salvar e continuar →</button>
+    <div class="setup-err" id="setupErr"></div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="screenLogin" class="screen" style="display:none">
+  <div class="login-wrap">
+    <div class="login-icon-wrap"><div class="login-icon-inner">N</div></div>
+    <div class="login-brand">NOOMA</div>
+    <div class="login-tagline">Calendário da Agência</div>
+    <button class="btn-google" id="btnGoogle">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Entrar com Google
+    </button>
+    <div class="login-note">Após o primeiro login, você entra automaticamente em qualquer dispositivo.</div>
+    <div class="login-loading" id="loginLoading"><span class="ld"></span> Entrando...</div>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="screenApp" class="screen" style="display:none">
+  <header>
+    <div class="h-logo">
+      <div class="logo-n-box">N</div>
+      <div class="h-wordmark"><span>NOOMA</span> <small>Calendar</small></div>
+    </div>
+
+    <!-- Workspace Switcher -->
+    <div class="ws-switcher">
+      <button class="ws-btn" id="btnWsSwitcher">
+        <span class="ws-btn-icon" id="wsBtnIcon">📅</span>
+        <span class="ws-btn-name" id="wsBtnName">Pessoal</span>
+        <span class="ws-btn-arrow">▾</span>
+        <span class="ws-badge" id="wsBadge" style="display:none">0</span>
+      </button>
+      <div class="ws-dropdown" id="wsDropdown">
+        <div class="ws-dd-hdr">Meus Calendários</div>
+        <div id="wsDdList"></div>
+        <div class="ws-dd-sep"></div>
+        <div class="ws-dd-create" id="btnCreateWsLink">
+          <span>🏢</span><span>Criar Workspace</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-center">
+      <div class="month-nav">
+        <button class="btn-nav" id="btnPrev">&#8249;</button>
+        <div class="month-lbl" id="monthLbl">Julho <em>2026</em></div>
+        <button class="btn-nav" id="btnNext">&#8250;</button>
+      </div>
+    </div>
+
+    <div class="h-right">
+      <button class="btn-hdr-icon btn-hdr-accent" id="btnManageHdr" title="Clientes">👥 <span style="display:none" id="hdrClientsLbl">Clientes</span></button>
+      <button class="btn-hdr-icon" id="btnWsSettings" style="display:none" title="Configurações do Workspace">⚙️</button>
+      <button class="btn-hdr-icon" id="btnAnalytics" style="display:none" title="Analytics (Admin)">📊</button>
+      <div class="user-chip" id="userChip">
+        <img class="user-avatar" id="userAvatar" src="" alt="Avatar"/>
+        <span class="user-name" id="userName">...</span>
+      </div>
+      <button class="logout-btn" id="btnLogout">Sair</button>
+    </div>
+  </header>
+
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-label">Filtrar:</span>
+    <div class="filter-chip active-all" data-id="">Todos</div>
+  </div>
+
+  <main>
+    <aside class="sidebar">
+      <div class="s-card">
+        <div class="s-title">Clientes</div>
+        <div class="s-client-list" id="sidebarClients"></div>
+        <button class="btn-manage-side" id="btnManageSide">✏️ Gerenciar Clientes</button>
+      </div>
+      <div class="s-card">
+        <div class="s-title">Tipos de Conteúdo</div>
+        <div class="ct-list">
+          <div class="ct-row"><span class="ico">🎬</span> Reels <span class="ct-badge badge-reels">REELS</span></div>
+          <div class="ct-row"><span class="ico">📸</span> Feed <span class="ct-badge badge-feed">FEED</span></div>
+          <div class="ct-row"><span class="ico">🎠</span> Carrossel <span class="ct-badge badge-carrossel">CARROSSEL</span></div>
+          <div class="ct-row"><span class="ico">🖼️</span> Foto <span class="ct-badge badge-foto">FOTO</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="cal-wrap">
+      <div class="readonly-banner" id="readonlyBanner">👁️ Você está no modo visualização — não é possível editar</div>
+      <div class="day-names-row">
+        <div class="day-name-cell">Dom</div><div class="day-name-cell">Seg</div>
+        <div class="day-name-cell">Ter</div><div class="day-name-cell">Qua</div>
+        <div class="day-name-cell">Qui</div><div class="day-name-cell">Sex</div>
+        <div class="day-name-cell">Sáb</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </main>
+
+  <div class="fab-group">
+    <button class="fab" id="fabClients" title="Gerenciar clientes">👥</button>
+    <button class="fab sec" id="fabWs" title="Workspaces">🏢</button>
+  </div>
+</div>
+
+<!-- DAY MODAL -->
+<div class="overlay" id="dayOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><div class="modal-title" id="dayModalTitle">Dia</div><div class="modal-sub" id="dayModalSub">2026</div></div>
+      <button class="btn-close" id="btnCloseDayModal">✕</button>
+    </div>
+    <div id="postsList" class="posts-list"></div>
+    <div id="noPostsMsg" class="no-posts-msg" style="display:none">Nenhuma postagem neste dia</div>
+
+    <div id="addPostSection">
+      <div class="divider"></div>
+      <div class="sect-hdr"><div class="sect-title">+ Adicionar Postagem</div></div>
+      <div style="margin-bottom:12px">
+        <div class="sect-hdr" style="margin-bottom:7px">
+          <div class="sect-title">Cliente / Rede Social</div>
+          <button class="btn-toggle-add" id="btnToggleAddClient">+ Novo Cliente</button>
+        </div>
+        <div class="client-grid" id="clientSelector"></div>
+        <div class="inline-add-form" id="inlineAddForm">
+          <div class="inline-add-label">Criar novo cliente</div>
+          <div class="inline-add-row">
+            <input class="sm-input" type="text" id="inlineClientName" placeholder="Nome do cliente..." maxlength="30"/>
+            <div class="color-thumb" id="inlineColorThumb"><input type="color" id="inlineClientColor" value="#edf252"/></div>
+            <input class="hex-sm" type="text" id="inlineClientHex" value="#EDF252" maxlength="7"/>
+            <button class="btn-add-inline" id="btnSaveInlineClient">Criar</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="sect-title" style="margin-bottom:7px">Tipo de Conteúdo</div>
+        <div class="type-grid">
+          <div class="topt" data-type="Reels" id="to_Reels"><span class="ico">🎬</span><span class="lbl">Reels</span><span class="badge badge-reels">REELS</span></div>
+          <div class="topt" data-type="Feed" id="to_Feed"><span class="ico">📸</span><span class="lbl">Feed</span><span class="badge badge-feed">FEED</span></div>
+          <div class="topt" data-type="Carrossel" id="to_Carrossel"><span class="ico">🎠</span><span class="lbl">Carrossel</span><span class="badge badge-carrossel">CARROSSEL</span></div>
+          <div class="topt" data-type="Foto" id="to_Foto"><span class="ico">🖼️</span><span class="lbl">Foto</span><span class="badge badge-foto">FOTO</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="sect-title" style="margin-bottom:7px">Anotação (opcional)</div>
+        <textarea class="note-ta" id="noteInput" placeholder="Ex: Reels especial dia das mães..."></textarea>
+      </div>
+      <button class="btn-add-post" id="btnAddPost" disabled>+ Adicionar ao dia</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENTS MODAL -->
+<div class="overlay" id="clientsOverlay">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-hdr">
+      <div><div class="modal-title">👥 Gerenciar Clientes</div><div class="modal-sub" id="clientsModalSub">Calendário Pessoal</div></div>
+      <button class="btn-close" id="btnCloseClientsModal">✕</button>
+    </div>
+    <div class="cm-list" id="clientsManager"></div>
+    <div class="divider"></div>
+    <div class="add-cm-card">
+      <div class="add-cm-title">+ Novo Cliente</div>
+      <div class="add-cm-row">
+        <input class="cm-text-input" type="text" id="newClientName" placeholder="Nome do cliente..." maxlength="30"/>
+        <div class="color-swatch-lg" id="newColorSwatchWrap"><input type="color" id="newClientColor" value="#edf252"/></div>
+        <input class="hex-input" type="text" id="newClientHex" value="#EDF252" maxlength="7"/>
+        <button class="btn-create" id="btnCreateClient">Criar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKSPACE SETTINGS MODAL -->
+<div class="overlay" id="wsSettingsOverlay">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <div><div class="modal-title" id="wsSettingsTitle">⚙️ Workspace</div><div class="modal-sub" id="wsSettingsSub">Gerencie membros e convites</div></div>
+      <button class="btn-close" id="btnCloseWsSettings">✕</button>
+    </div>
+    <div id="wsSettingsContent"></div>
+  </div>
+</div>
+
+<!-- CREATE WORKSPACE MODAL -->
+<div class="overlay" id="createWsOverlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr">
+      <div><div class="modal-title">🏢 Criar Workspace</div><div class="modal-sub">Um calendário compartilhado com sua equipe</div></div>
+      <button class="btn-close" id="btnCloseCreateWs">✕</button>
+    </div>
+    <div class="field">
+      <label class="flabel" for="wsNameInput">Nome do Workspace</label>
+      <input class="finput" type="text" id="wsNameInput" placeholder="Ex: Agência NOOMA, Time de Design..." maxlength="50"/>
+    </div>
+    <button class="btn-add-post" id="btnConfirmCreateWs">🏢 Criar Workspace</button>
+  </div>
+</div>
+
+<!-- ANALYTICS MODAL -->
+<div class="overlay" id="analyticsOverlay">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-hdr">
+      <div><div class="modal-title">📊 Analytics</div><div class="modal-sub">Visão exclusiva do administrador</div></div>
+      <button class="btn-close" id="btnCloseAnalytics">✕</button>
+    </div>
+    <div id="analyticsContent"><div style="text-align:center;padding:30px 0;color:var(--muted)"><span class="ld"></span><br><br>Carregando dados...</div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+         browserLocalPersistence, setPersistence }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { initializeFirestore, persistentLocalCache,
+         collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
+         onSnapshot, writeBatch, query, where,
+         arrayUnion, arrayRemove, deleteField, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// ─── Constants ─────────────────────────────────────────────────────────────────
+const ADMIN_EMAIL = 'kabomboombam@hotmail.com';
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DAYS   = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const CONTENT_TYPES = [
+  { id:'Reels',     label:'REELS',     icon:'🎬', cls:'badge-reels'     },
+  { id:'Feed',      label:'FEED',      icon:'📸', cls:'badge-feed'      },
+  { id:'Carrossel', label:'CARROSSEL', icon:'🎠', cls:'badge-carrossel' },
+  { id:'Foto',      label:'FOTO',      icon:'🖼️', cls:'badge-foto'      },
+];
+const MIN_Y = 2026, MIN_M = 7, MAX_Y = 2032, MAX_M = 12;
+const FB_BASE = { authDomain:'calendario-agencia.firebaseapp.com', projectId:'calendario-agencia', storageBucket:'calendario-agencia.firebasestorage.app', messagingSenderId:'449749401473' };
+
+// ─── State + Firebase ──────────────────────────────────────────────────────────
+let fbApp, auth, db;
+let currentUser = null;
+let unsubClients = null, unsubPosts = null, unsubWorkspaces = null;
+const pendingListeners = {};
+
+const state = {
+  year: 2026, month: 7,
+  clients: [], posts: {},
+  filterClientId: null,
+  currentWorkspace: null,   // null = personal | { id, name, role, ownerId, ... }
+  userWorkspaces: [],
+  form: { selectedClients: [], selectedType: null },
+};
+
+// ─── Utilities ─────────────────────────────────────────────────────────────────
+const uid   = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const dk    = (y,m,d) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const getC  = id => state.clients.find(c => c.id === id);
+const getCT = id => CONTENT_TYPES.find(t => t.id === id);
+const fmtDate = d => d.toISOString().slice(0, 10);
+const generateCode = () => Math.random().toString(36).substr(2, 8).toUpperCase();
+
+function buildGradient(colors) {
+  if (!colors.length) return 'transparent';
+  if (colors.length === 1) return colors[0];
+  const p = 100 / colors.length;
+  return `linear-gradient(90deg,${colors.map((c,i)=>`${c} ${i*p}%,${c} ${(i+1)*p}%`).join(',')})`;
+}
+
+let toastTimer = null;
+function toast(msg, dur = 2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function relativeTime(ts) {
+  if (!ts) return 'nunca';
+  const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
+  const diff = Math.floor((Date.now() - d) / 1000);
+  if (diff < 60) return 'agora';
+  if (diff < 3600) return `${Math.floor(diff/60)} min atrás`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h atrás`;
+  if (diff < 2592000) return `${Math.floor(diff/86400)} dias atrás`;
+  return d.toLocaleDateString('pt-BR');
+}
+
+// ─── Screen Management ─────────────────────────────────────────────────────────
+function showScreen(id) {
+  ['screenLoading','screenSetup','screenLogin','screenApp'].forEach(s => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    el.style.display = (s === id) ? 'flex' : 'none';
+    if (s === id) el.style.flexDirection = 'column';
+  });
+}
+
+// ─── LocalStorage ──────────────────────────────────────────────────────────────
+function saveNav() { localStorage.setItem('nooma_nav', JSON.stringify({ y: state.year, m: state.month })); }
+function loadNav() { try { const o = JSON.parse(localStorage.getItem('nooma_nav')||'{}'); if(o.y){state.year=o.y;state.month=o.m;} } catch(e){} }
+function getStored() { const k=localStorage.getItem('nooma_apiKey'),a=localStorage.getItem('nooma_appId'); return k&&a?{apiKey:k,appId:a}:null; }
+
+// ─── Data Path ─────────────────────────────────────────────────────────────────
+function dataRoot() {
+  if (state.currentWorkspace) return `workspaces/${state.currentWorkspace.id}`;
+  return `users/${currentUser.uid}`;
+}
+
+function canEdit() {
+  if (!state.currentWorkspace) return true;
+  return ['owner','editor'].includes(state.currentWorkspace.role);
+}
+
+// ─── Firebase Init ─────────────────────────────────────────────────────────────
+async function initFirebase(apiKey, appId) {
+  if (fbApp) return;
+  const config = { ...FB_BASE, apiKey, appId };
+  fbApp = initializeApp(config);
+  auth  = getAuth(fbApp);
+  db    = initializeFirestore(fbApp, { localCache: persistentLocalCache() });
+
+  await setPersistence(auth, browserLocalPersistence);
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      const av = document.getElementById('userAvatar');
+      const un = document.getElementById('userName');
+      if (av && user.photoURL) av.src = user.photoURL;
+      if (un) un.textContent = user.displayName || 'Você';
+      if (user.email === ADMIN_EMAIL) {
+        document.getElementById('btnAnalytics').style.display = 'flex';
+      }
+      trackActivity(user);
+      await setupAllListeners(user.uid);
+      await checkInviteURL();
+      showScreen('screenApp');
+      renderAll();
+    } else {
+      currentUser = null;
+      teardownListeners();
+      showScreen('screenLogin');
+    }
+  });
+}
+
+// ─── Analytics Tracking ────────────────────────────────────────────────────────
+async function trackActivity(user) {
+  if (!db) return;
+  try {
+    const today = fmtDate(new Date());
+    const userRef = doc(db, '_users', user.uid);
+    const snap = await getDoc(userRef);
+    const isNew = !snap.exists();
+    await setDoc(userRef, {
+      email: user.email || '',
+      displayName: user.displayName || '',
+      photoURL: user.photoURL || null,
+      lastSeen: serverTimestamp(),
+      ...(isNew ? { createdAt: serverTimestamp() } : {}),
+    }, { merge: true });
+    await setDoc(doc(db, '_daily', today), { users: arrayUnion(user.uid) }, { merge: true });
+  } catch(e) { /* analytics is non-critical */ }
+}
+
+// ─── Listeners ─────────────────────────────────────────────────────────────────
+function teardownListeners() {
+  if (unsubClients)   { unsubClients();   unsubClients   = null; }
+  if (unsubPosts)     { unsubPosts();     unsubPosts     = null; }
+  if (unsubWorkspaces){ unsubWorkspaces();unsubWorkspaces= null; }
+  Object.values(pendingListeners).forEach(u => u());
+  Object.keys(pendingListeners).forEach(k => delete pendingListeners[k]);
+}
+
+async function setupAllListeners(uid) {
+  // Workspace listener
+  if (unsubWorkspaces) unsubWorkspaces();
+  const wsQ = query(collection(db, 'workspaces'), where('memberUids', 'array-contains', uid));
+  unsubWorkspaces = onSnapshot(wsQ, snap => {
+    state.userWorkspaces = snap.docs.map(d => {
+      const data = d.data();
+      const member = data.members?.[uid];
+      const role = data.ownerId === uid ? 'owner' : (member?.role || 'viewer');
+      return { id: d.id, ...data, role };
+    });
+    setupPendingListeners();
+    renderWorkspaceSwitcher();
+  });
+
+  // Data listeners
+  setupDataListeners();
+}
+
+function setupDataListeners() {
+  if (unsubClients) { unsubClients(); unsubClients = null; }
+  if (unsubPosts)   { unsubPosts();   unsubPosts   = null; }
+  const root = dataRoot();
+
+  unsubClients = onSnapshot(collection(db, root, 'clients'), snap => {
+    state.clients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+  }, err => console.warn('Clients error:', err.message));
+
+  unsubPosts = onSnapshot(collection(db, root, 'posts'), snap => {
+    state.posts = {};
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if (!state.posts[data.date]) state.posts[data.date] = [];
+      state.posts[data.date].push({ id: d.id, ...data });
+    });
+    renderAll();
+  }, err => console.warn('Posts error:', err.message));
+}
+
+function setupPendingListeners() {
+  // Only for workspaces where user is owner
+  const ownedIds = new Set(state.userWorkspaces.filter(w => w.ownerId === currentUser?.uid).map(w => w.id));
+
+  // Clean up listeners for workspaces user no longer owns
+  Object.keys(pendingListeners).forEach(wid => {
+    if (!ownedIds.has(wid)) { pendingListeners[wid](); delete pendingListeners[wid]; }
+  });
+
+  // Setup new listeners
+  ownedIds.forEach(wid => {
+    if (pendingListeners[wid]) return;
+    pendingListeners[wid] = onSnapshot(collection(db, 'workspaces', wid, 'pendingRequests'), snap => {
+      const ws = state.userWorkspaces.find(w => w.id === wid);
+      if (ws) { ws.pendingCount = snap.size; ws.pendingList = snap.docs.map(d => ({ uid: d.id, ...d.data() })); }
+      renderWorkspaceSwitcher();
+    });
+  });
+}
+
+// ─── Workspace Operations ──────────────────────────────────────────────────────
+function switchWorkspace(ws) {
+  if (ws) {
+    state.currentWorkspace = ws;
+  } else {
+    state.currentWorkspace = null;
+  }
+  state.clients = [];
+  state.posts   = {};
+  state.filterClientId = null;
+
+  setupDataListeners();
+  closeWsDropdown();
+  renderAll();
+  renderWorkspaceSwitcher();
+
+  const settingsBtn = document.getElementById('btnWsSettings');
+  if (settingsBtn) settingsBtn.style.display = ws ? 'flex' : 'none';
+
+  const banner = document.getElementById('readonlyBanner');
+  if (banner) banner.classList.toggle('show', ws && ws.role === 'viewer');
+}
+
+async function createWorkspace(name) {
+  const wid  = uid();
+  const code = generateCode();
+  const wsData = {
+    name, ownerId: currentUser.uid, ownerEmail: currentUser.email,
+    memberUids: [currentUser.uid], editorUids: [currentUser.uid],
+    members: {
+      [currentUser.uid]: { email: currentUser.email, displayName: currentUser.displayName || currentUser.email, photoURL: currentUser.photoURL || null, role: 'owner', joinedAt: serverTimestamp() }
+    },
+    inviteCode: code, createdAt: serverTimestamp(),
+  };
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'workspaces', wid), wsData);
+  batch.set(doc(db, '_invites', code), { workspaceId: wid, workspaceName: name, ownerId: currentUser.uid, ownerName: currentUser.displayName || currentUser.email });
+  await batch.commit();
+  toast(`✅ Workspace "${name}" criado!`);
+  return { id: wid, ...wsData, role: 'owner' };
+}
+
+async function requestToJoin(code) {
+  try {
+    const inviteDoc = await getDoc(doc(db, '_invites', code));
+    if (!inviteDoc.exists()) { toast('❌ Convite inválido ou expirado'); return; }
+    const { workspaceId, workspaceName } = inviteDoc.data();
+
+    // Check if already a member
+    const wsDoc = await getDoc(doc(db, 'workspaces', workspaceId));
+    if (wsDoc.exists() && (wsDoc.data().memberUids || []).includes(currentUser.uid)) {
+      toast('✅ Você já é membro deste workspace!');
+      const wsData = { id: wsDoc.id, ...wsDoc.data() };
+      const member = wsData.members?.[currentUser.uid];
+      wsData.role = wsData.ownerId === currentUser.uid ? 'owner' : (member?.role || 'viewer');
+      switchWorkspace(wsData);
+      return;
+    }
+
+    // Create pending request
+    await setDoc(doc(db, 'workspaces', workspaceId, 'pendingRequests', currentUser.uid), {
+      uid: currentUser.uid, email: currentUser.email,
+      displayName: currentUser.displayName || currentUser.email,
+      photoURL: currentUser.photoURL || null, requestedAt: serverTimestamp(),
+    });
+    toast(`🔔 Solicitação enviada para "${workspaceName}"! Aguarde a aprovação do dono.`, 4500);
+  } catch(e) { toast(`❌ Erro: ${e.message}`); }
+}
+
+async function approveRequest(wid, req, role) {
+  const batch = writeBatch(db);
+  batch.delete(doc(db, 'workspaces', wid, 'pendingRequests', req.uid));
+  const updates = {
+    memberUids: arrayUnion(req.uid),
+    [`members.${req.uid}`]: { email: req.email, displayName: req.displayName, photoURL: req.photoURL || null, role, joinedAt: serverTimestamp() },
+  };
+  if (role !== 'viewer') updates.editorUids = arrayUnion(req.uid);
+  batch.update(doc(db, 'workspaces', wid), updates);
+  await batch.commit();
+  toast(`✅ ${req.displayName} aprovado como ${role}!`);
+}
+
+async function rejectRequest(wid, reqUid, reqName) {
+  if (!confirm(`Rejeitar solicitação de "${reqName}"?`)) return;
+  await deleteDoc(doc(db, 'workspaces', wid, 'pendingRequests', reqUid));
+  toast('❌ Solicitação rejeitada');
+}
+
+async function updateMemberRole(wid, targetUid, newRole) {
+  const wsRef = doc(db, 'workspaces', wid);
+  const updates = { [`members.${targetUid}.role`]: newRole };
+  if (newRole === 'viewer') updates.editorUids = arrayRemove(targetUid);
+  else if (newRole === 'editor') updates.editorUids = arrayUnion(targetUid);
+  await updateDoc(wsRef, updates);
+  toast(`✅ Role atualizado para ${newRole}`);
+}
+
+async function removeMember(wid, targetUid, targetName) {
+  if (!confirm(`Remover "${targetName}" do workspace?`)) return;
+  await updateDoc(doc(db, 'workspaces', wid), {
+    memberUids: arrayRemove(targetUid), editorUids: arrayRemove(targetUid),
+    [`members.${targetUid}`]: deleteField(),
+  });
+  toast(`🗑 ${targetName} removido`);
+}
+
+async function leaveWorkspace(wid) {
+  if (!confirm('Sair deste workspace? Você precisará de um novo convite para voltar.')) return;
+  await updateDoc(doc(db, 'workspaces', wid), {
+    memberUids: arrayRemove(currentUser.uid), editorUids: arrayRemove(currentUser.uid),
+    [`members.${currentUser.uid}`]: deleteField(),
+  });
+  switchWorkspace(null);
+  toast('👋 Você saiu do workspace');
+}
+
+async function deleteWorkspace(wid, wsName) {
+  if (!confirm(`Deletar workspace "${wsName}" permanentemente? Todos os dados serão perdidos.`)) return;
+  const ws = state.userWorkspaces.find(w => w.id === wid);
+  try {
+    const [cs, ps, prs] = await Promise.all([
+      getDocs(collection(db, 'workspaces', wid, 'clients')),
+      getDocs(collection(db, 'workspaces', wid, 'posts')),
+      getDocs(collection(db, 'workspaces', wid, 'pendingRequests')),
+    ]);
+    const batch = writeBatch(db);
+    [...cs.docs, ...ps.docs, ...prs.docs].forEach(d => batch.delete(d.ref));
+    batch.delete(doc(db, 'workspaces', wid));
+    if (ws?.inviteCode) batch.delete(doc(db, '_invites', ws.inviteCode));
+    await batch.commit();
+    switchWorkspace(null);
+    toast('🗑 Workspace deletado');
+  } catch(e) { toast(`❌ Erro: ${e.message}`); }
+}
+
+async function regenerateInviteCode(wid) {
+  const ws = state.userWorkspaces.find(w => w.id === wid);
+  if (!ws) return;
+  const newCode = generateCode();
+  const batch   = writeBatch(db);
+  if (ws.inviteCode) batch.delete(doc(db, '_invites', ws.inviteCode));
+  batch.set(doc(db, '_invites', newCode), { workspaceId: wid, workspaceName: ws.name, ownerId: currentUser.uid, ownerName: currentUser.displayName || currentUser.email });
+  batch.update(doc(db, 'workspaces', wid), { inviteCode: newCode });
+  await batch.commit();
+  toast('🔄 Novo link de convite gerado!');
+}
+
+// ─── Firestore CRUD ────────────────────────────────────────────────────────────
+async function saveClient(client) {
+  if (!db || !currentUser) return;
+  await setDoc(doc(db, dataRoot(), 'clients', client.id), client);
+}
+async function removeClient(clientId) {
+  if (!db || !currentUser) return;
+  const root = dataRoot();
+  await deleteDoc(doc(db, root, 'clients', clientId));
+  const snap = await getDocs(collection(db, root, 'posts'));
+  const batch = writeBatch(db);
+  snap.docs.forEach(d => { if (d.data().clientId === clientId) batch.delete(d.ref); });
+  await batch.commit();
+}
+async function savePost(dateKey, post) {
+  if (!db || !currentUser) return;
+  const data = { ...post, date: dateKey };
+  if (state.currentWorkspace) {
+    data.addedBy = { uid: currentUser.uid, displayName: currentUser.displayName || currentUser.email, photoURL: currentUser.photoURL || null };
+  }
+  await setDoc(doc(db, dataRoot(), 'posts', post.id), data);
+}
+async function removePost(postId) {
+  if (!db || !currentUser) return;
+  await deleteDoc(doc(db, dataRoot(), 'posts', postId));
+}
+
+// ─── Render All ────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderCalendar();
+  renderSidebar();
+  renderFilterBar();
+  saveNav();
+  if (document.getElementById('clientsOverlay').classList.contains('open')) renderClientsManager();
+  if (activeDayKey && document.getElementById('dayOverlay').classList.contains('open')) {
+    renderDayModalPosts(); renderClientSelector();
+  }
+}
+
+// ─── Workspace Switcher ────────────────────────────────────────────────────────
+function renderWorkspaceSwitcher() {
+  const list      = document.getElementById('wsDdList');
+  const btnName   = document.getElementById('wsBtnName');
+  const btnIcon   = document.getElementById('wsBtnIcon');
+  const badge     = document.getElementById('wsBadge');
+  if (!list) return;
+
+  const isPersonal = !state.currentWorkspace;
+  btnName.textContent = isPersonal ? 'Pessoal' : state.currentWorkspace.name;
+  btnIcon.textContent = isPersonal ? '📅' : '🏢';
+
+  // Total pending across all owned workspaces
+  const totalPending = state.userWorkspaces.reduce((n, w) => n + (w.pendingCount || 0), 0);
+  if (totalPending > 0) { badge.textContent = totalPending; badge.style.display = 'flex'; }
+  else { badge.style.display = 'none'; }
+
+  let html = '';
+  html += `<div class="ws-dd-item ${isPersonal?'active':''}" id="dd-personal">
+    <span class="ws-dd-item-icon">📅</span>
+    <div class="ws-dd-item-info"><div class="ws-dd-item-name">Pessoal</div><div class="ws-dd-item-sub">Só você</div></div>
+  </div>`;
+
+  if (state.userWorkspaces.length) html += '<div class="ws-dd-sep"></div>';
+
+  state.userWorkspaces.forEach(ws => {
+    const active = state.currentWorkspace?.id === ws.id;
+    const pending = ws.pendingCount || 0;
+    html += `<div class="ws-dd-item ${active?'active':''}" id="dd-ws-${ws.id}">
+      <span class="ws-dd-item-icon">🏢</span>
+      <div class="ws-dd-item-info">
+        <div class="ws-dd-item-name">${ws.name}</div>
+        <div class="ws-dd-item-sub">${ws.role} · ${(ws.memberUids||[]).length} membros</div>
+      </div>
+      ${pending > 0 ? `<span class="ws-dd-item-badge">${pending}</span>` : ''}
+    </div>`;
+  });
+
+  list.innerHTML = html;
+
+  document.getElementById('dd-personal').addEventListener('click', () => switchWorkspace(null));
+  state.userWorkspaces.forEach(ws => {
+    document.getElementById(`dd-ws-${ws.id}`)?.addEventListener('click', () => switchWorkspace(ws));
+  });
+}
+
+function closeWsDropdown() { document.getElementById('wsDropdown').classList.remove('open'); }
+
+// ─── Filter Bar ────────────────────────────────────────────────────────────────
+function renderFilterBar() {
+  const bar = document.getElementById('filterBar');
+  const mk  = `${state.year}-${String(state.month).padStart(2,'0')}`;
+  const counts = {}; state.clients.forEach(c => { counts[c.id] = 0; });
+  let total = 0;
+  Object.entries(state.posts).forEach(([k,arr]) => {
+    if (k.startsWith(mk)) arr.forEach(p => { total++; if (counts[p.clientId] !== undefined) counts[p.clientId]++; });
+  });
+  let html = `<span class="filter-label">Filtrar:</span>`;
+  html += `<div class="filter-chip ${!state.filterClientId?'active-all':''}" data-id="">Todos <span style="opacity:.6">(${total})</span></div>`;
+  if (state.clients.length) html += `<div class="filter-sep"></div>`;
+  state.clients.forEach(c => {
+    const isA = state.filterClientId === c.id;
+    html += `<div class="filter-chip ${isA?'active-client':''}" data-id="${c.id}"><span class="fc-dot" style="background:${c.color}"></span>${c.name} <span class="fc-count">(${counts[c.id]||0})</span></div>`;
+  });
+  bar.innerHTML = html;
+  bar.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const id = chip.dataset.id;
+      state.filterClientId = (id && id !== state.filterClientId) ? id : null;
+      renderCalendar(); renderFilterBar();
+    });
+  });
+}
+
+// ─── Sidebar ───────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const el = document.getElementById('sidebarClients');
+  if (!el) return;
+  if (!state.clients.length) { el.innerHTML = '<div class="s-empty">Nenhum cliente ainda</div>'; return; }
+  const mk = `${state.year}-${String(state.month).padStart(2,'0')}`;
+  const counts = {}; state.clients.forEach(c => { counts[c.id] = 0; });
+  Object.entries(state.posts).forEach(([k,arr]) => {
+    if (k.startsWith(mk)) arr.forEach(p => { if(counts[p.clientId]!==undefined) counts[p.clientId]++; });
+  });
+  el.innerHTML = state.clients.map(c => `<div class="s-client-item"><span class="s-dot" style="background:${c.color}"></span><span class="s-name">${c.name}</span><span class="s-count">${counts[c.id]||0}</span></div>`).join('');
+}
+
+// ─── Calendar ──────────────────────────────────────────────────────────────────
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  const { year, month } = state;
+  const firstDay    = new Date(year, month-1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const today       = new Date();
+  const isThisM     = today.getFullYear()===year && today.getMonth()+1===month;
+  const lbl = document.getElementById('monthLbl');
+  if (lbl) lbl.innerHTML = `${MONTHS[month-1]} <em>${year}</em>`;
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) {
+    const pm = month===1?12:month-1, py = month===1?year-1:year;
+    const dp = new Date(py,pm,0).getDate();
+    html += `<div class="day-cell outside"><div class="day-color-bar"></div><div class="day-num">${dp-firstDay+1+i}</div></div>`;
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key       = dk(year,month,d);
+    const dayPosts  = state.posts[key] || [];
+    const isToday   = isThisM && today.getDate()===d;
+    let filtered    = '';
+    if (state.filterClientId) { filtered = dayPosts.some(p=>p.clientId===state.filterClientId) ? 'f-hi' : 'f-dim'; }
+    const usedIds   = [...new Set(dayPosts.map(p=>p.clientId))];
+    const gradient  = buildGradient(usedIds.map(id=>getC(id)?.color).filter(Boolean));
+    const visible   = state.filterClientId ? dayPosts.filter(p=>p.clientId===state.filterClientId) : dayPosts;
+    const maxShow   = 3, shown = visible.slice(0,maxShow), extra = visible.length-maxShow;
+    const tagsHtml  = shown.map(p => {
+      const cl = getC(p.clientId), ct = getCT(p.contentType);
+      if (!cl) return '';
+      return `<div class="cp-tag" style="background:${cl.color}"><div class="cp-tag-line1">${cl.name} <span class="cp-tag-type">[${ct?ct.label:p.contentType}]</span></div>${p.note?`<div class="cp-tag-note">${p.note}</div>`:''}</div>`;
+    }).join('');
+    html += `<div class="day-cell${isToday?' today':''}${filtered?' '+filtered:''}" id="dc_${key}"><div class="day-color-bar" style="background:${gradient}"></div><div class="day-num">${d}</div><div class="day-posts-wrap">${tagsHtml}${extra>0?`<div class="cp-more">+${extra} mais</div>`:''}${dayPosts.length===0?`<div class="cp-empty">+</div>`:''}</div></div>`;
+  }
+  const total = firstDay + daysInMonth;
+  const pad   = total%7===0?0:7-(total%7);
+  for (let i = 1; i <= pad; i++) html += `<div class="day-cell outside"><div class="day-color-bar"></div><div class="day-num">${i}</div></div>`;
+
+  grid.innerHTML = html;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.getElementById(`dc_${dk(year,month,d)}`);
+    if (cell) cell.addEventListener('click', () => openDayModal(year,month,d));
+  }
+}
+
+// ─── Day Modal ─────────────────────────────────────────────────────────────────
+let activeDayKey = null;
+
+function openDayModal(y,m,d) {
+  activeDayKey = dk(y,m,d);
+  state.form   = { selectedClients:[], selectedType:null };
+  const dow = new Date(y,m-1,d).getDay();
+  document.getElementById('dayModalTitle').textContent = `${DAYS[dow]}, ${d} de ${MONTHS[m-1]}`;
+  document.getElementById('dayModalSub').textContent   = `${y}`;
+  document.getElementById('noteInput').value = '';
+  document.getElementById('inlineAddForm').classList.remove('open');
+  document.getElementById('inlineClientName').value = '';
+
+  const addSection = document.getElementById('addPostSection');
+  if (addSection) addSection.style.display = canEdit() ? '' : 'none';
+
+  renderDayModalPosts(); renderClientSelector(); resetTypeSelector(); updateAddBtn();
+  document.getElementById('dayOverlay').classList.add('open');
+}
+
+function closeDayModal() { document.getElementById('dayOverlay').classList.remove('open'); activeDayKey = null; }
+
+function renderDayModalPosts() {
+  const list  = document.getElementById('postsList');
+  const noMsg = document.getElementById('noPostsMsg');
+  const posts = state.posts[activeDayKey] || [];
+  if (!posts.length) { list.innerHTML = ''; noMsg.style.display = 'block'; return; }
+  noMsg.style.display = 'none';
+  list.innerHTML = posts.map((p, idx) => {
+    const cl = getC(p.clientId), ct = getCT(p.contentType);
+    if (!cl) return '';
+    const noteHtml = p.note ? `<div class="post-note">💬 ${p.note}</div>` : '';
+    const creatorHtml = p.addedBy && state.currentWorkspace
+      ? `<div class="post-creator"><img class="post-creator-avatar" src="${p.addedBy.photoURL||''}" onerror="this.style.display='none'" alt=""/><span>${p.addedBy.displayName}</span></div>`
+      : '';
+    const delBtn = canEdit() ? `<button class="btn-del-post" data-idx="${idx}" title="Remover">🗑</button>` : '';
+    return `<div class="post-item"><span class="post-colordot" style="background:${cl.color}"></span><div class="post-info"><div class="post-cname">${cl.name}</div><div class="post-badges"><span class="post-badge ${ct?.cls||''}">${ct?ct.icon:''} ${ct?ct.label:p.contentType}</span></div>${noteHtml}${creatorHtml}</div>${delBtn}</div>`;
+  }).join('');
+
+  list.querySelectorAll('.btn-del-post').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt(btn.dataset.idx);
+      const dp  = state.posts[activeDayKey] || [];
+      const post = dp[idx]; if (!post) return;
+      await removePost(post.id);
+      dp.splice(idx, 1);
+      if (!dp.length) delete state.posts[activeDayKey]; else state.posts[activeDayKey] = dp;
+      renderDayModalPosts(); renderAll(); toast('🗑 Postagem removida');
+    });
+  });
+}
+
+function renderClientSelector() {
+  const el = document.getElementById('clientSelector');
+  if (!state.clients.length) { el.innerHTML = '<div class="no-clients-hint">Nenhum cliente. Crie um abaixo!</div>'; return; }
+  el.innerHTML = state.clients.map(c => {
+    const isSel = state.form.selectedClients.includes(c.id);
+    return `<div class="copt${isSel?' sel':''}" data-id="${c.id}" style="color:${c.color}"><span class="dot" style="background:${c.color}"></span>${c.name}</div>`;
+  }).join('');
+  el.querySelectorAll('.copt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const id = opt.dataset.id;
+      const idx = state.form.selectedClients.indexOf(id);
+      if (idx >= 0) state.form.selectedClients.splice(idx,1); else state.form.selectedClients.push(id);
+      opt.classList.toggle('sel', state.form.selectedClients.includes(id));
+      updateAddBtn();
+    });
+  });
+}
+
+function resetTypeSelector() { document.querySelectorAll('.topt').forEach(o=>o.classList.remove('sel')); state.form.selectedType=null; }
+function updateAddBtn() { const btn=document.getElementById('btnAddPost'); if(btn) btn.disabled=!(state.form.selectedClients.length>0&&state.form.selectedType); }
+
+document.querySelectorAll('.topt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.topt').forEach(o=>o.classList.remove('sel'));
+    opt.classList.add('sel');
+    state.form.selectedType = opt.dataset.type;
+    updateAddBtn();
+  });
+});
+
+document.getElementById('btnAddPost').addEventListener('click', async () => {
+  if (!state.form.selectedClients.length || !state.form.selectedType) return;
+  const note = document.getElementById('noteInput').value.trim();
+  if (!state.posts[activeDayKey]) state.posts[activeDayKey] = [];
+  const newPosts = state.form.selectedClients.map(clientId => ({ id: uid(), clientId, contentType: state.form.selectedType, note }));
+  for (const post of newPosts) {
+    state.posts[activeDayKey].push(post);
+    await savePost(activeDayKey, post);
+  }
+  state.form = { selectedClients:[], selectedType:null };
+  document.getElementById('noteInput').value = '';
+  renderClientSelector(); resetTypeSelector(); updateAddBtn(); renderDayModalPosts(); renderAll();
+  toast('✅ Postagem adicionada!');
+});
+
+document.getElementById('btnCloseDayModal').addEventListener('click', closeDayModal);
+document.getElementById('dayOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeDayModal(); });
+
+// Inline add client in day modal
+document.getElementById('btnToggleAddClient').addEventListener('click', () => { document.getElementById('inlineAddForm').classList.toggle('open'); });
+const inlineColor = document.getElementById('inlineClientColor');
+const inlineHex   = document.getElementById('inlineClientHex');
+const inlineThumb = document.getElementById('inlineColorThumb');
+inlineColor.addEventListener('input', () => { inlineHex.value=inlineColor.value.toUpperCase(); inlineThumb.style.background=inlineColor.value; });
+inlineHex.addEventListener('input', () => { let v=inlineHex.value; if(!v.startsWith('#'))v='#'+v; if(/^#[0-9a-fA-F]{6}$/.test(v)){inlineColor.value=v.toLowerCase();inlineThumb.style.background=v;} });
+inlineThumb.style.background = inlineColor.value;
+document.getElementById('btnSaveInlineClient').addEventListener('click', async () => {
+  const name = document.getElementById('inlineClientName').value.trim();
+  if (!name) { toast('⚠️ Digite o nome do cliente'); return; }
+  let color = inlineHex.value.trim(); if(!color.startsWith('#'))color='#'+color;
+  if(!/^#[0-9a-fA-F]{6}$/.test(color))color='#edf252';
+  const cl = { id:uid(), name, color };
+  state.clients.push(cl); await saveClient(cl);
+  document.getElementById('inlineClientName').value = '';
+  document.getElementById('inlineAddForm').classList.remove('open');
+  renderClientSelector(); renderAll(); toast(`✅ "${name}" criado!`);
+});
+
+// ─── Clients Modal ─────────────────────────────────────────────────────────────
+function openClientsModal() {
+  const sub = document.getElementById('clientsModalSub');
+  if (sub) sub.textContent = state.currentWorkspace ? `Workspace: ${state.currentWorkspace.name}` : 'Calendário Pessoal';
+  renderClientsManager();
+  document.getElementById('clientsOverlay').classList.add('open');
+}
+function closeClientsModal() { document.getElementById('clientsOverlay').classList.remove('open'); }
+
+function renderClientsManager() {
+  const el = document.getElementById('clientsManager');
+  if (!el) return;
+  if (!state.clients.length) { el.innerHTML = '<div class="s-empty">Nenhum cliente ainda. Crie abaixo!</div>'; return; }
+  el.innerHTML = state.clients.map(c => `
+    <div class="cm-item" id="cmRow_${c.id}">
+      <div class="cm-swatch" style="background:${c.color}"><input type="color" value="${c.color}" class="cm-color-pick" data-id="${c.id}"/></div>
+      <input class="cm-name" value="${c.name}" data-id="${c.id}" maxlength="30"/>
+      <input class="cm-hex" value="${c.color.toUpperCase()}" data-id="${c.id}" maxlength="7"/>
+      <button class="btn-cm-save" data-id="${c.id}">Salvar</button>
+      <button class="btn-cm-del" data-id="${c.id}" title="Deletar">🗑</button>
+    </div>`).join('');
+
+  el.querySelectorAll('.cm-color-pick').forEach(pick => {
+    pick.addEventListener('input', () => {
+      const row = document.getElementById(`cmRow_${pick.dataset.id}`);
+      row.querySelector('.cm-hex').value = pick.value.toUpperCase();
+      pick.closest('.cm-swatch').style.background = pick.value;
+    });
+  });
+  el.querySelectorAll('.cm-hex').forEach(hi => {
+    hi.addEventListener('input', () => {
+      let v=hi.value; if(!v.startsWith('#'))v='#'+v;
+      if(/^#[0-9a-fA-F]{6}$/.test(v)){
+        const row=document.getElementById(`cmRow_${hi.dataset.id}`);
+        const pick=row.querySelector('.cm-color-pick');
+        pick.value=v.toLowerCase(); pick.closest('.cm-swatch').style.background=v;
+      }
+    });
+  });
+  el.querySelectorAll('.btn-cm-save').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id=btn.dataset.id, row=document.getElementById(`cmRow_${id}`), cl=state.clients.find(c=>c.id===id);
+      if(!cl) return;
+      cl.name  = row.querySelector('.cm-name').value.trim() || cl.name;
+      cl.color = row.querySelector('.cm-color-pick').value;
+      await saveClient(cl); renderAll(); toast('✅ Cliente atualizado!');
+    });
+  });
+  el.querySelectorAll('.btn-cm-del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id=btn.dataset.id, cl=state.clients.find(c=>c.id===id);
+      if(!confirm(`Deletar "${cl?.name}"? Todas as postagens serão removidas.`)) return;
+      await removeClient(id);
+      state.clients = state.clients.filter(c=>c.id!==id);
+      Object.keys(state.posts).forEach(k => { state.posts[k]=state.posts[k].filter(p=>p.clientId!==id); if(!state.posts[k].length) delete state.posts[k]; });
+      if(state.filterClientId===id) state.filterClientId=null;
+      renderClientsManager(); renderAll(); toast('🗑 Cliente removido');
+    });
+  });
+}
+
+// New client in clients modal
+const newColorPick = document.getElementById('newClientColor');
+const newHexInput  = document.getElementById('newClientHex');
+const newSwatchW   = document.getElementById('newColorSwatchWrap');
+newColorPick.addEventListener('input', () => { newHexInput.value=newColorPick.value.toUpperCase(); newSwatchW.style.background=newColorPick.value; });
+newHexInput.addEventListener('input', () => { let v=newHexInput.value; if(!v.startsWith('#'))v='#'+v; if(/^#[0-9a-fA-F]{6}$/.test(v)){newColorPick.value=v.toLowerCase();newSwatchW.style.background=v;} });
+newSwatchW.style.background = newColorPick.value;
+document.getElementById('btnCreateClient').addEventListener('click', async () => {
+  const name = document.getElementById('newClientName').value.trim();
+  if (!name) { toast('⚠️ Digite o nome do cliente'); return; }
+  let color = newHexInput.value.trim(); if(!color.startsWith('#'))color='#'+color;
+  if(!/^#[0-9a-fA-F]{6}$/.test(color))color='#edf252';
+  const cl = { id:uid(), name, color };
+  state.clients.push(cl); await saveClient(cl);
+  document.getElementById('newClientName').value = '';
+  renderClientsManager(); renderAll(); toast(`✅ "${name}" criado!`);
+});
+
+['btnManageHdr','btnManageSide','fabClients'].forEach(id => { document.getElementById(id)?.addEventListener('click', openClientsModal); });
+document.getElementById('btnCloseClientsModal').addEventListener('click', closeClientsModal);
+document.getElementById('clientsOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeClientsModal(); });
+
+// ─── Workspace Settings Modal ──────────────────────────────────────────────────
+async function openWsSettings() {
+  const ws = state.currentWorkspace;
+  if (!ws) return;
+  document.getElementById('wsSettingsTitle').textContent = `⚙️ ${ws.name}`;
+  document.getElementById('wsSettingsSub').textContent   = `${(ws.memberUids||[]).length} membros · Você é ${ws.role}`;
+  await renderWsSettings(ws);
+  document.getElementById('wsSettingsOverlay').classList.add('open');
+}
+function closeWsSettings() { document.getElementById('wsSettingsOverlay').classList.remove('open'); }
+
+async function renderWsSettings(ws) {
+  const el  = document.getElementById('wsSettingsContent');
+  const uid = currentUser.uid;
+  const isOwner = ws.ownerId === uid;
+
+  let html = '';
+
+  // Members
+  html += `<div class="sect-title" style="margin-bottom:8px">Membros (${(ws.memberUids||[]).length})</div>`;
+  html += `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">`;
+  Object.entries(ws.members || {}).forEach(([muid, m]) => {
+    const isMe = muid === uid;
+    const roleClass = `role-${m.role}`;
+    const roleSelector = isOwner && !isMe && m.role !== 'owner'
+      ? `<select class="ws-role-select" data-uid="${muid}">
+          <option value="editor" ${m.role==='editor'?'selected':''}>Editor</option>
+          <option value="viewer" ${m.role==='viewer'?'selected':''}>Viewer</option>
+         </select>`
+      : `<span class="ws-role-badge ${roleClass}">${m.role}</span>`;
+    const removeBtn = isOwner && !isMe
+      ? `<button class="btn-ws-icon btn-rm-member" data-uid="${muid}" data-name="${m.displayName}" title="Remover">🗑</button>` : '';
+    html += `<div class="ws-member-item">
+      <img class="ws-member-avatar" src="${m.photoURL||''}" onerror="this.style.background='var(--bg3)'; this.src=''" alt=""/>
+      <div class="ws-member-info"><div class="ws-member-name">${m.displayName}${isMe?' (você)':''}</div><div class="ws-member-email">${m.email}</div></div>
+      ${roleSelector}${removeBtn}
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Pending requests (owner only)
+  const ws2    = state.userWorkspaces.find(w => w.id === ws.id);
+  const pending = ws2?.pendingList || [];
+  if (isOwner && pending.length > 0) {
+    html += `<div class="sect-title" style="margin-bottom:8px;color:#ffa502">⏳ Aprovações Pendentes (${pending.length})</div>`;
+    html += `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">`;
+    pending.forEach(req => {
+      html += `<div class="pending-item">
+        <img class="ws-member-avatar" src="${req.photoURL||''}" onerror="this.style.background='var(--bg3)'; this.src=''" alt=""/>
+        <div class="ws-member-info"><div class="ws-member-name">${req.displayName}</div><div class="ws-member-email">${req.email} · ${relativeTime(req.requestedAt)}</div></div>
+        <select class="pending-select" id="psel_${req.uid}">
+          <option value="editor">Editor</option>
+          <option value="viewer">Viewer</option>
+        </select>
+        <button class="btn-approve" data-uid="${req.uid}" data-name="${req.displayName}" data-email="${req.email}" data-photo="${req.photoURL||''}">✓ Aprovar</button>
+        <button class="btn-reject" data-uid="${req.uid}" data-name="${req.displayName}">✗</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Invite link
+  if (isOwner) {
+    const inviteUrl = `${location.origin}${location.pathname}?join=${ws.inviteCode}`;
+    html += `<div class="divider"></div>`;
+    html += `<div class="sect-title" style="margin-bottom:8px">🔗 Link de Convite</div>`;
+    html += `<div class="invite-box" id="inviteLinkBox">${inviteUrl}</div>`;
+    html += `<div class="invite-btns">
+      <button class="btn-copy" id="btnCopyLink">📋 Copiar Link</button>
+      <button class="btn-regen" id="btnRegenCode">🔄 Novo Código</button>
+    </div>`;
+  }
+
+  // Danger zone
+  html += `<div class="divider"></div>`;
+  html += `<div class="danger-zone"><div class="danger-title">⚠️ Danger Zone</div>`;
+  if (!isOwner) {
+    html += `<button class="btn-danger" id="btnLeaveWs">👋 Sair do Workspace</button>`;
+  } else {
+    html += `<button class="btn-danger" id="btnDeleteWs">🗑 Deletar Workspace</button>`;
+  }
+  html += `</div>`;
+
+  el.innerHTML = html;
+
+  // Wire events
+  el.querySelectorAll('.ws-role-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      await updateMemberRole(ws.id, sel.dataset.uid, sel.value);
+    });
+  });
+  el.querySelectorAll('.btn-rm-member').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await removeMember(ws.id, btn.dataset.uid, btn.dataset.name);
+      await openWsSettings();
+    });
+  });
+  el.querySelectorAll('.btn-approve').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const role = document.getElementById(`psel_${btn.dataset.uid}`)?.value || 'editor';
+      await approveRequest(ws.id, { uid: btn.dataset.uid, email: btn.dataset.email, displayName: btn.dataset.name, photoURL: btn.dataset.photo }, role);
+      await renderWsSettings(state.currentWorkspace || ws);
+    });
+  });
+  el.querySelectorAll('.btn-reject').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await rejectRequest(ws.id, btn.dataset.uid, btn.dataset.name);
+      await renderWsSettings(state.currentWorkspace || ws);
+    });
+  });
+
+  document.getElementById('btnCopyLink')?.addEventListener('click', () => {
+    const txt = document.getElementById('inviteLinkBox')?.textContent;
+    if (txt) { navigator.clipboard.writeText(txt).then(()=>toast('📋 Link copiado!')); }
+  });
+  document.getElementById('btnRegenCode')?.addEventListener('click', async () => {
+    await regenerateInviteCode(ws.id);
+    const ws2 = state.userWorkspaces.find(w => w.id === ws.id);
+    if (ws2) await renderWsSettings(ws2);
+  });
+  document.getElementById('btnLeaveWs')?.addEventListener('click', async () => {
+    await leaveWorkspace(ws.id); closeWsSettings();
+  });
+  document.getElementById('btnDeleteWs')?.addEventListener('click', async () => {
+    await deleteWorkspace(ws.id, ws.name); closeWsSettings();
+  });
+}
+
+document.getElementById('btnWsSettings').addEventListener('click', openWsSettings);
+document.getElementById('btnCloseWsSettings').addEventListener('click', closeWsSettings);
+document.getElementById('wsSettingsOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeWsSettings(); });
+
+// ─── Create Workspace ──────────────────────────────────────────────────────────
+function openCreateWs() { document.getElementById('wsNameInput').value=''; document.getElementById('createWsOverlay').classList.add('open'); closeWsDropdown(); }
+function closeCreateWs() { document.getElementById('createWsOverlay').classList.remove('open'); }
+['btnCreateWsLink'].forEach(id => { document.getElementById(id)?.addEventListener('click', openCreateWs); });
+document.getElementById('btnCloseCreateWs').addEventListener('click', closeCreateWs);
+document.getElementById('createWsOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeCreateWs(); });
+document.getElementById('btnConfirmCreateWs').addEventListener('click', async () => {
+  const name = document.getElementById('wsNameInput').value.trim();
+  if (!name) { toast('⚠️ Digite o nome do workspace'); return; }
+  const btn = document.getElementById('btnConfirmCreateWs');
+  btn.innerHTML = '<span class="ld"></span> Criando...'; btn.disabled = true;
+  try {
+    const ws = await createWorkspace(name);
+    closeCreateWs();
+    setTimeout(() => switchWorkspace({ ...ws, role: 'owner' }), 500);
+  } catch(e) { toast(`❌ Erro: ${e.message}`); }
+  finally { btn.innerHTML = '🏢 Criar Workspace'; btn.disabled = false; }
+});
+
+// ─── Analytics ─────────────────────────────────────────────────────────────────
+async function openAnalytics() {
+  document.getElementById('analyticsOverlay').classList.add('open');
+  document.getElementById('analyticsContent').innerHTML = '<div style="text-align:center;padding:30px 0;color:var(--muted)"><span class="ld"></span><br><br>Carregando dados...</div>';
+  const data = await loadAnalytics();
+  renderAnalyticsModal(data);
+}
+function closeAnalytics() { document.getElementById('analyticsOverlay').classList.remove('open'); }
+document.getElementById('btnAnalytics')?.addEventListener('click', openAnalytics);
+document.getElementById('btnCloseAnalytics').addEventListener('click', closeAnalytics);
+document.getElementById('analyticsOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeAnalytics(); });
+
+async function loadAnalytics() {
+  if (currentUser?.email !== ADMIN_EMAIL) return null;
+  try {
+    const fmt = d => d.toISOString().slice(0,10);
+    const today = new Date();
+    const ago   = n => fmt(new Date(today.getTime() - n*86400000));
+    const [usersSnap, todayDoc, ago3Doc, ago7Doc, ago30Doc] = await Promise.all([
+      getDocs(collection(db, '_users')),
+      getDoc(doc(db, '_daily', fmt(today))),
+      getDoc(doc(db, '_daily', ago(3))),
+      getDoc(doc(db, '_daily', ago(7))),
+      getDoc(doc(db, '_daily', ago(30))),
+    ]);
+    const stats = {
+      total: usersSnap.size,
+      today: (todayDoc.data()?.users||[]).length,
+      ago3:  (ago3Doc.data()?.users||[]).length,
+      ago7:  (ago7Doc.data()?.users||[]).length,
+      ago30: (ago30Doc.data()?.users||[]).length,
+    };
+    const users = usersSnap.docs.map(d=>({uid:d.id,...d.data()})).sort((a,b)=>(b.lastSeen?.seconds||0)-(a.lastSeen?.seconds||0));
+    return { stats, users };
+  } catch(e) { console.error('Analytics:', e); return null; }
+}
+
+function renderAnalyticsModal(data) {
+  const el = document.getElementById('analyticsContent');
+  if (!data) { el.innerHTML = '<div style="color:var(--danger);text-align:center;padding:20px">❌ Erro ao carregar. Verifique as regras do Firestore.</div>'; return; }
+  const { stats, users } = data;
+  el.innerHTML = `
+    <div class="analytics-grid">
+      <div class="stat-card main"><div class="stat-num">${stats.total}</div><div class="stat-label">Contas Registradas</div></div>
+      <div class="stat-card"><div class="stat-num">${stats.today}</div><div class="stat-label">Usaram Hoje</div></div>
+      <div class="stat-card"><div class="stat-num">${stats.ago3}</div><div class="stat-label">Usaram 3 Dias Atrás</div></div>
+      <div class="stat-card"><div class="stat-num">${stats.ago7}</div><div class="stat-label">Usaram 7 Dias Atrás</div></div>
+      <div class="stat-card"><div class="stat-num">${stats.ago30}</div><div class="stat-label">Usaram 1 Mês Atrás</div></div>
+      <div class="stat-card"><div class="stat-num">${state.userWorkspaces.length}</div><div class="stat-label">Seus Workspaces</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="sect-title" style="margin-bottom:10px">Todos os usuários (${users.length})</div>
+    <div class="analytics-users-list">
+      ${users.map(u=>`
+        <div class="au-item">
+          <img class="au-avatar" src="${u.photoURL||''}" onerror="this.style.display='none'" alt=""/>
+          <div class="au-info"><div class="au-name">${u.displayName||'Sem nome'}</div><div class="au-email">${u.email}</div></div>
+          <div class="au-last">${relativeTime(u.lastSeen)}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ─── Month Nav ─────────────────────────────────────────────────────────────────
+document.getElementById('btnPrev').addEventListener('click', () => {
+  if (state.year===MIN_Y && state.month===MIN_M) return;
+  if (state.month===1) { state.year--; state.month=12; } else state.month--;
+  renderAll();
+});
+document.getElementById('btnNext').addEventListener('click', () => {
+  if (state.year===MAX_Y && state.month===MAX_M) return;
+  if (state.month===12) { state.year++; state.month=1; } else state.month++;
+  renderAll();
+});
+
+// ─── Keyboard ──────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') { closeDayModal(); closeClientsModal(); closeWsSettings(); closeCreateWs(); closeAnalytics(); closeWsDropdown(); }
+  if (!document.querySelector('.overlay.open')) {
+    if (e.key==='ArrowLeft')  document.getElementById('btnPrev').click();
+    if (e.key==='ArrowRight') document.getElementById('btnNext').click();
+  }
+});
+document.addEventListener('click', e => {
+  const dd = document.getElementById('wsDropdown'), sw = document.getElementById('btnWsSwitcher');
+  if (dd && !dd.contains(e.target) && sw && !sw.contains(e.target)) dd.classList.remove('open');
+});
+
+// ─── Auth ──────────────────────────────────────────────────────────────────────
+document.getElementById('btnGoogle').addEventListener('click', async () => {
+  const loading = document.getElementById('loginLoading');
+  const errEl   = document.getElementById('loginErr');
+  loading.style.display='flex'; errEl.style.display='none';
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt:'select_account' });
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    loading.style.display='none';
+    errEl.style.display='block';
+    errEl.textContent = e.code==='auth/popup-closed-by-user' ? 'Login cancelado.' : `Erro: ${e.message}`;
+  }
+});
+
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  if (confirm('Sair do NOOMA Calendar?')) { await signOut(auth); showScreen('screenLogin'); }
+});
+document.getElementById('userChip').addEventListener('click', () => {
+  if (confirm('Sair do NOOMA Calendar?')) signOut(auth);
+});
+
+// ─── Workspace Switcher Button ─────────────────────────────────────────────────
+document.getElementById('btnWsSwitcher').addEventListener('click', e => {
+  e.stopPropagation(); document.getElementById('wsDropdown').classList.toggle('open');
+});
+document.getElementById('fabWs')?.addEventListener('click', e => {
+  e.stopPropagation(); document.getElementById('wsDropdown').classList.toggle('open');
+});
+
+// ─── Setup Screen ─────────────────────────────────────────────────────────────
+document.getElementById('btnSetupSave').addEventListener('click', async () => {
+  const apiKey = document.getElementById('inp_apiKey').value.trim();
+  const appId  = document.getElementById('inp_appId').value.trim();
+  const errEl  = document.getElementById('setupErr');
+  errEl.textContent = '';
+  if (!apiKey || !appId) { errEl.textContent = '⚠️ Preencha os dois campos.'; return; }
+  const btn = document.getElementById('btnSetupSave');
+  btn.innerHTML = '<span class="ld"></span>'; btn.disabled = true;
+  try {
+    localStorage.setItem('nooma_apiKey', apiKey);
+    localStorage.setItem('nooma_appId',  appId);
+    await initFirebase(apiKey, appId);
+  } catch(e) {
+    localStorage.removeItem('nooma_apiKey'); localStorage.removeItem('nooma_appId');
+    errEl.textContent = `❌ Erro: ${e.message}`;
+  } finally { btn.innerHTML = 'Salvar e continuar →'; btn.disabled = false; }
+});
+
+// ─── Invite URL Check ─────────────────────────────────────────────────────────
+async function checkInviteURL() {
+  const params   = new URLSearchParams(window.location.search);
+  const joinCode = params.get('join') || localStorage.getItem('nooma_pending_join');
+  if (!joinCode || !currentUser) return;
+  localStorage.removeItem('nooma_pending_join');
+  window.history.replaceState({}, '', window.location.pathname);
+  await requestToJoin(joinCode);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  loadNav();
+  showScreen('screenLoading');
+
+  // Save invite code before login if present
+  const params = new URLSearchParams(window.location.search);
+  const joinCode = params.get('join');
+  if (joinCode) localStorage.setItem('nooma_pending_join', joinCode);
+
+  const stored = getStored();
+  if (stored) {
+    await initFirebase(stored.apiKey, stored.appId);
+    setTimeout(() => {
+      const l = document.getElementById('screenLoading');
+      if (l && l.style.display !== 'none') showScreen('screenLogin');
+    }, 7000);
+  } else {
+    showScreen('screenSetup');
+  }
+}
+
+init();
+</script>
+</body>
+</html>

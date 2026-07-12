@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background -->
+  <rect width="100" height="100" rx="20" fill="#0d0d0d"/>
+  <!-- Calendar body -->
+  <rect x="10" y="26" width="80" height="62" rx="10" fill="#edf252"/>
+  <!-- Header bar -->
+  <rect x="10" y="26" width="80" height="22" rx="10" fill="#1c1c1c"/>
+  <rect x="10" y="38" width="80" height="10" fill="#1c1c1c"/>
+  <!-- Ring left -->
+  <rect x="27" y="14" width="10" height="20" rx="5" fill="#1c1c1c"/>
+  <!-- Ring right -->
+  <rect x="63" y="14" width="10" height="20" rx="5" fill="#1c1c1c"/>
+  <!-- Grid row 1 -->
+  <circle cx="28" cy="62" r="5" fill="#0d0d0d"/>
+  <circle cx="50" cy="62" r="5" fill="#0d0d0d"/>
+  <circle cx="72" cy="62" r="5" fill="#0d0d0d"/>
+  <!-- Grid row 2 -->
+  <circle cx="28" cy="78" r="5" fill="#0d0d0d"/>
+  <circle cx="50" cy="78" r="5" fill="#0d0d0d"/>
+  <!-- Highlighted today cell -->
+  <rect x="63" y="70" width="18" height="16" rx="5" fill="#0d0d0d"/>
+  <rect x="65" y="72" width="14" height="12" rx="3" fill="#edf252"/>
+</svg>
