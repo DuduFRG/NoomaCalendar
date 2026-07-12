@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#161616"/>
+      <stop offset="100%" stop-color="#0d0d0d"/>
+    </linearGradient>
+    <linearGradient id="calGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5ff5c"/>
+      <stop offset="100%" stop-color="#edf252"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="100" height="100" rx="22" fill="url(#bgGrad)"/>
+
+  <!-- Calendar body (yellow) -->
+  <rect x="14" y="26" width="72" height="58" rx="10" fill="url(#calGrad)"/>
+
+  <!-- Calendar header bar (dark) -->
+  <rect x="14" y="26" width="72" height="20" rx="10" fill="#1c1c1c"/>
+  <rect x="14" y="38" width="72" height="8" fill="#1c1c1c"/>
+
+  <!-- Calendar binding rings -->
+  <rect x="29" y="18" width="8" height="16" rx="4" fill="#1c1c1c"/>
+  <rect x="63" y="18" width="8" height="16" rx="4" fill="#1c1c1c"/>
+
+  <!-- Grid dots on yellow -->
+  <circle cx="28" cy="57" r="3.5" fill="#0d0d0d"/>
+  <circle cx="50" cy="57" r="3.5" fill="#0d0d0d"/>
+  <circle cx="72" cy="57" r="3.5" fill="#0d0d0d"/>
+  <circle cx="28" cy="71" r="3.5" fill="#0d0d0d"/>
+  <circle cx="50" cy="71" r="3.5" fill="#0d0d0d"/>
+
+  <!-- Highlighted day (today) -->
+  <circle cx="72" cy="71" r="5" fill="#edf252" stroke="#0d0d0d" stroke-width="2.5"/>
+
+  <!-- Nooma N bubble (top-left) -->
+  <circle cx="13" cy="13" r="11" fill="#edf252"/>
+  <text x="13" y="18" text-anchor="middle" fill="#0d0d0d" font-size="14" font-weight="900" font-family="Arial, sans-serif">N</text>
+
+  <!-- Instagram bubble (top-right) -->
+  <circle cx="87" cy="13" r="11" fill="#C13584"/>
+  <rect x="80.5" y="6.5" width="13" height="13" rx="3.5" fill="none" stroke="white" stroke-width="1.8"/>
+  <circle cx="87" cy="13" r="3.8" fill="none" stroke="white" stroke-width="1.8"/>
+  <circle cx="91.2" cy="8.8" r="1.3" fill="white"/>
+
+  <!-- YouTube bubble (bottom-left) -->
+  <circle cx="13" cy="87" r="11" fill="#FF0000"/>
+  <polygon points="9,83 9,92 20,87.5" fill="white"/>
+
+  <!-- TikTok bubble (bottom-right) -->
+  <circle cx="87" cy="87" r="11" fill="#111111"/>
+  <rect x="83.5" y="81" width="2.5" height="9" rx="1.2" fill="#69C9D0"/>
+  <rect x="86" y="81" width="2.5" height="9" rx="1.2" fill="white"/>
+  <ellipse cx="88.5" cy="83.5" rx="2.5" ry="2.5" fill="#EE1D52"/>
+  <circle cx="89" cy="87.5" r="2.5" fill="white"/>
+  <circle cx="86" cy="87.5" r="2.5" fill="#69C9D0"/>
+</svg>
