@@ -581,7 +581,7 @@ function showScreen(id){['screenLoading','screenSetup','screenLogin','screenApp'
 // ─── LocalStorage ───────────────────────────────────────────────────────────────
 function saveNav(){localStorage.setItem('nooma_nav',JSON.stringify({y:state.year,m:state.month}));}
 function loadNav(){try{const o=JSON.parse(localStorage.getItem('nooma_nav')||'{}');if(o.y){state.year=o.y;state.month=o.m;}}catch(e){}}
-function getStored(){const k=localStorage.getItem('nooma_apiKey'),a=localStorage.getItem('nooma_appId');return k&&a?{apiKey:k,appId:a}:null;}
+
 
 // ─── Data Path ─────────────────────────────────────────────────────────────────
 function dataRoot(){return state.currentWorkspace?`workspaces/${state.currentWorkspace.id}`:`users/${currentUser.uid}`;}
@@ -1277,16 +1277,34 @@ async function checkInviteURL(){
 }
 
 // ─── Init ───────────────────────────────────────────────────────────────────────
-function getStored(){return true;} // config agora é hardcoded
 async function init(){
-  loadNav();showScreen('screenLoading');
+  loadNav();
+  // Mostrar tela de loading imediatamente
+  const loading=document.getElementById('screenLoading');
+  const login=document.getElementById('screenLogin');
+  const app=document.getElementById('screenApp');
+  if(loading)loading.style.display='flex';
+  if(login)login.style.display='none';
+  if(app)app.style.display='none';
+
+  // Guardrail absoluto: após 5 segundos, vai para o login sem importância do que aconteceu
+  const killTimer=setTimeout(()=>{
+    if(loading&&loading.style.display!=='none'){
+      loading.style.display='none';
+      if(login)login.style.display='flex';
+    }
+  },5000);
+
   const params=new URLSearchParams(window.location.search),joinCode=params.get('join');
   if(joinCode)localStorage.setItem('nooma_pending_join',joinCode);
-  // ⚠️ IMPORTANTE: timeout deve ser definido ANTES de qualquer operação async
-  // para garantir que o usuário nunca fique preso na tela de loading
-  setTimeout(()=>{if(document.getElementById('screenLoading')?.style.display!=='none')showScreen('screenLogin');},6000);
-  // Não usar await aqui: onAuthStateChanged é quem vai trocar a tela
-  initFirebase();
+
+  // initFirebase não é aguardado: onAuthStateChanged cuida das transições de tela
+  initFirebase().catch(e=>{
+    console.error('initFirebase falhou:',e);
+    clearTimeout(killTimer);
+    if(loading)loading.style.display='none';
+    if(login)login.style.display='flex';
+  });
 }
 init();
 </script>
