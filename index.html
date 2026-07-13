@@ -590,24 +590,36 @@ function canEdit(){if(!state.currentWorkspace)return true;return['owner','editor
 // ─── Firebase Init ─────────────────────────────────────────────────────────────
 async function initFirebase(){
   if(fbApp)return;
-  fbApp=initializeApp(FIREBASE_CONFIG);
-  auth=getAuth(fbApp);
-  db=initializeFirestore(fbApp,{localCache:persistentLocalCache()});
-  await setPersistence(auth,browserLocalPersistence);
-  onAuthStateChanged(auth,async user=>{
-    if(user){
-      currentUser=user;
-      const av=document.getElementById('userAvatar'),un=document.getElementById('userName');
-      if(av&&user.photoURL)av.src=user.photoURL;
-      if(un)un.textContent=user.displayName||'Você';
-      if(user.email===ADMIN_EMAIL)document.getElementById('btnAnalytics').style.display='flex';
-      trackActivity(user);
-      await setupAllListeners(user.uid);
-      await checkInviteURL();
-      showScreen('screenApp');
-      renderAll();
-    }else{currentUser=null;teardownListeners();showScreen('screenLogin');}
-  });
+  try{
+    fbApp=initializeApp(FIREBASE_CONFIG);
+    auth=getAuth(fbApp);
+    // persistentLocalCache usa IndexedDB e pode travar em alguns browsers/dispositivos
+    try{
+      db=initializeFirestore(fbApp,{localCache:persistentLocalCache()});
+    }catch(cacheErr){
+      console.warn('Cache persistente indisponível, usando memória:',cacheErr.message);
+      db=initializeFirestore(fbApp,{});
+    }
+    // setPersistence também pode falhar em modo privado ou dispositivos restritos
+    try{await setPersistence(auth,browserLocalPersistence);}catch(e){}
+    onAuthStateChanged(auth,async user=>{
+      if(user){
+        currentUser=user;
+        const av=document.getElementById('userAvatar'),un=document.getElementById('userName');
+        if(av&&user.photoURL)av.src=user.photoURL;
+        if(un)un.textContent=user.displayName||'Você';
+        if(user.email===ADMIN_EMAIL)document.getElementById('btnAnalytics').style.display='flex';
+        trackActivity(user);
+        await setupAllListeners(user.uid);
+        await checkInviteURL();
+        showScreen('screenApp');
+        renderAll();
+      }else{currentUser=null;teardownListeners();showScreen('screenLogin');}
+    });
+  }catch(e){
+    console.error('Erro ao inicializar Firebase:',e);
+    showScreen('screenLogin');
+  }
 }
 
 async function trackActivity(user){
@@ -1265,14 +1277,16 @@ async function checkInviteURL(){
 }
 
 // ─── Init ───────────────────────────────────────────────────────────────────────
-function getStored(){return true;} // mantido por compatibilidade — config agora é hardcoded
+function getStored(){return true;} // config agora é hardcoded
 async function init(){
   loadNav();showScreen('screenLoading');
   const params=new URLSearchParams(window.location.search),joinCode=params.get('join');
   if(joinCode)localStorage.setItem('nooma_pending_join',joinCode);
-  await initFirebase();
-  // Fallback: se após 8s ainda estiver no loading, vai para login
-  setTimeout(()=>{const l=document.getElementById('screenLoading');if(l&&l.style.display!=='none')showScreen('screenLogin');},8000);
+  // ⚠️ IMPORTANTE: timeout deve ser definido ANTES de qualquer operação async
+  // para garantir que o usuário nunca fique preso na tela de loading
+  setTimeout(()=>{if(document.getElementById('screenLoading')?.style.display!=='none')showScreen('screenLogin');},6000);
+  // Não usar await aqui: onAuthStateChanged é quem vai trocar a tela
+  initFirebase();
 }
 init();
 </script>
